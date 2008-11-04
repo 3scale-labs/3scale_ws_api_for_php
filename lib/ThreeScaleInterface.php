@@ -67,51 +67,53 @@ class ThreeScaleInterface {
    * @param array $usage
    */
   public function start($userKey, $usage = array()) {
-    $url = "{$this->host}/transactions.xml";
+    $url = $this->getHost() . "/transactions.xml";
     $params = array(
-        'user_key' => $userKey,
+        'user_key' => self::prepareKey($userKey),
         'provider_key' => $this->getProviderPrivateKey(),
         'usage' => $usage);
 
     $response = $this->http->post($url, $params);
 
     if ($response->headers['Status-Code'] == 200) {
-
+      return $this->parseTransactionData($response->body);
     } else {
       $this->handleError($response->body);
     }
-
-
-    //      params = {
-    //        'user_key' => prepare_key(user_key),
-    //        'provider_key' => provider_private_key
-    //      }
-    //      params.merge!(encode_params(usage, 'usage'))
-    //      response = Net::HTTP.post_form(uri, params)
-    //
-    //      if response.is_a?(Net::HTTPSuccess)
-    //        element = Hpricot::XML(response.body).at('transaction')
-    //        [:id, :provider_verification_key, :contract_name].inject({}) do |memo, key|
-    //          memo[key] = element.at(key).inner_text if element.at(key)
-    //          memo
-    //        end
-    //      else
-    //        handle_error(response.body)
-    //      end
   }
 
   /**
    * Confirm transaction.
    */
   public function confirm($transactionId, $usage = array()) {
+    $url = $this->getHost() . "/transactions/" . urlencode($transactionId) . "/confirm.xml";
+    $params = array(
+      'provider_key' => $this->getProviderPrivateKey(),
+      'usage' => $usage);
 
+    $response = $this->http->post($url, $params);
+
+    if ($response->headers['Status-Code'] == 200) {
+      return true;
+    } else {
+      $this->handleError($response->body);
+    }
   }
 
   /**
    * Cancel transaction.
    */
   public function cancel($transactionId) {
+    $url = $this->getHost() . "/transactions/" . urlencode($transactionId) . ".xml";
+    $params = array('provider_key' => $this->getProviderPrivateKey());
 
+    $response = $this->http->delete($url, $params);
+
+    if ($response->headers['Status-Code'] == 200) {
+      return true;
+    } else {
+      $this->handleError($response->body);
+    }
   }
 
   /**
@@ -123,36 +125,67 @@ class ThreeScaleInterface {
    * @param string $key
    * @return boolean
    */
-  public function isSystemKey($key) {
+  public static function isSystemKey($key) {
     return strpos($key, self::KEY_PREFIX) === 0;
+  }
+
+
+  private static function prepareKey($key) {
+    return self::isSystemKey($key) ? substr($key, strlen(self::KEY_PREFIX)) : $key;
+  }
+
+  private function parseTransactionData($body) {
+    $xml = new SimpleXMLElement($body);
+    $result = array();
+
+    foreach ($xml as $name => $value) {
+      $result[$name] = (string) $value;
+    }
+
+    return $result;
   }
 
   private function handleError($body) {
     static $codes_to_exceptions = array(
-    'user.exceeded_limits' => 'LimitsExceeded',
-    'user.invalid_key' => 'UserKeyInvalid',
-    'user.inactive_contract' => 'ContractNotActive',
-    'provider.invalid_key' => 'ProviderKeyInvalid',
-    'provider.invalid_metric' => 'MetricInvalid',
-    'provider.invalid_transaction_id' => 'TransactionNotFound');
-    
-    $xml = new SimpleXMLElement($body);
+      'user.exceeded_limits' => 'LimitsExceeded',
+      'user.invalid_key' => 'UserKeyInvalid',
+      'user.inactive_contract' => 'ContractNotActive',
+      'provider.invalid_key' => 'ProviderKeyInvalid',
+      'provider.invalid_metric' => 'MetricInvalid',
+      'provider.invalid_transaction_id' => 'TransactionNotFound');
+
+    try {
+      $xml = new SimpleXMLElement($body);
+    } catch (Exception $e) {
+      throw new ThreeScaleUnknownException;
+    }
+
     $exception_class = $codes_to_exceptions[(string) $xml['id']];
 
     if ($exception_class) {
       $exception_class = "ThreeScale{$exception_class}";
-      throw new $exception_class;
+      throw new $exception_class((string) $xml);
     } else {
-      throw new ThreeScaleUnknownError;
+      throw new ThreeScaleUnknownException;
     }
   }
 }
 
+# Exceptions caused by user of ther service.
 class ThreeScaleException extends RuntimeException {}
 class ThreeScaleUserException extends ThreeScaleException {}
 class ThreeScaleUserKeyInvalid extends ThreeScaleUserException {}
+class ThreeScaleContractNotActive extends ThreeScaleUserException {}
+class ThreeScaleLimitsExceeded extends ThreeScaleUserException {}
 
+# Exceptions caused by provider of the service.
 class ThreeScaleProviderException extends ThreeScaleException {}
 class ThreeScaleProviderKeyInvalid extends ThreeScaleProviderException {}
+class ThreeScaleTransactionNotFound extends ThreeScaleProviderException {}
+class ThreeScaleMetricInvalid extends ThreeScaleProviderException {}
+
+# Exception caused by errors on 3scale backend system.
+class ThreeScaleSystemException extends ThreeScaleException {}
+class ThreeScaleUnknownException extends ThreeScaleSystemException {}
 
 ?>
