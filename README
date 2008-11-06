@@ -1,0 +1,55 @@
+Interface for 3scale web service API monitoring system
+
+This library provides interface for communication with 3scale monitoring system.
+
+Usage
+
+Include the "lib/ThreeScaleInterface.php" file:
+
+  require_once("/path/to/library/lib/ThreeScaleInterface.php");
+
+Create interface object:
+
+  $interface = new ThreeScaleInterface("http://3scale.net", "your_provider_key");
+
+Because the object is stateless, you can create just one and store it globally.
+
+Then for each request to Your service:
+
+1. Start the transaction with user key and (optionally) estimated resource
+usage (in this example it is: 1 hit and 42000 kilobytes of storage space),
+
+  $transaction = $interface->start($user_key, array("hits" => 1, "storage" => 42000));
+
+This will return transaction data (if successful). It is an array containing
+these items:
+
+<tt>"id"</tt>::
+  transaction id necessary for confirmation or cancellation of transaction
+  (see following steps).
+
+<tt>"provider_verification_key"</tt>::
+  the provider should send this key back to user so he/she can verify the
+  authenticity of the response.
+
+<tt>"contract_name"</tt>::
+  name of contract the user is signed for. This can be used to send
+  different response according to contract type, if that is desired.
+
+2. Process the request.
+
+2a. If the processing was successful:
+Call confirm:
+
+  $interface->confirm($transaction["id"])
+
+Or call it with actual resource usage, if it differs from predicted one:
+
+  $interface->confirm($transaction["id"], array("hits" => 1, "storage" => 40500));
+
+2b. If there was some error, call cancel:
+
+  $interface->cancel($transaction["id"]);
+
+3. Send response back to the user together with provider_verification_key.
+
