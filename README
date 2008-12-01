@@ -53,3 +53,40 @@ Or call it with actual resource usage, if it differs from predicted one:
 
 3. Send response back to the user together with provider_verification_key.
 
+Example
+
+This is simple example of hypotetical service implementation that integrates
+this plugin.
+
+    <?php
+
+    $interface = new ThreeScaleInterface('http://www.3scale.net', 'your provider key...');
+
+    $user_key = $_GET["user_key"];
+
+    try {
+      $transaction = $interface->start($user_key, array('hits' => 1, 'storage' => 10));
+
+      try {
+        // This is just stub for the actual service request processing. This
+        // code will be different for each provider.
+        $response = process_request();
+
+        // If everything went ok, transaction is confirmed.
+        $interface->confirm($transaction['id']);
+
+        // This is example of how to send response to user with provider verification key embeded.
+        echo $response . "provider_verification_key=" . $transaction['provider_verification_key'];
+      } catch (Exception $exception) {
+        // Some exception occurend in request processing and the transaction has
+        // to be cancelled.
+
+        $interface->cancel($transaction['id']);
+      }
+    } catch (Exception $exception) {
+      // 3scale interface raised some exception.
+
+      echo "Error: " . $exception->getMessage();
+    }
+
+    ?>
