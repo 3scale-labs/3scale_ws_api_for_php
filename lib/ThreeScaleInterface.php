@@ -34,7 +34,13 @@ class ThreeScaleInterface {
   public function __construct($host = NULL, $providerAuthenticationKey = NULL, $http = NULL) {
     $this->host = $host;
     $this->providerAuthenticationKey = $providerAuthenticationKey;
-    $this->http = is_null($http) ? new Curl : $http;
+
+    if (is_null($http)) {
+      $http = new Curl;
+      $http->options['CURLOPT_FOLLOWLOCATION'] = false;
+    }
+
+    $this->http = $http;
   }
 
   /**

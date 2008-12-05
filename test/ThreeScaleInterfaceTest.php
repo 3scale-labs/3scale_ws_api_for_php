@@ -5,6 +5,8 @@ require_once('simpletest/autorun.php');
 
 require_once(dirname(__FILE__) . '/../lib/ThreeScaleInterface.php');
 
+error_reporting(E_ALL);
+
 Mock::generate('Curl');
 
 class StubResponse {
