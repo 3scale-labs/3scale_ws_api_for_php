@@ -1,3 +1,0 @@
-[submodule "lib/curl"]
-	path = lib/curl
-	url = git://github.com/shuber/curl.git
