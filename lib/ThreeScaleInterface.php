@@ -21,8 +21,6 @@ class ThreeScaleInterface {
   private $providerAuthenticationKey;
   private $http;
 
-  const KEY_PREFIX = '3scale-';
-
   /**
    * Create a 3scale interface instance.
    *
@@ -109,7 +107,7 @@ class ThreeScaleInterface {
   public function start($userKey, $usage = array()) {
     $url = $this->getHost() . "/transactions.xml";
     $params = array(
-        'user_key' => self::prepareKey($userKey),
+        'user_key' => $userKey,
         'provider_key' => $this->getProviderAuthenticationKey(),
         'usage' => $usage);
 
@@ -181,24 +179,6 @@ class ThreeScaleInterface {
     } else {
       $this->handleError($response->body);
     }
-  }
-
-  /**
-   * Check if the key is 3scale system key.
-   *
-   * This can be used to quickly differentiate between 3scale keys and any
-   * other authentication keys the provider might use.
-   *
-   * @param string $key
-   * @return boolean
-   */
-  public static function isSystemKey($key) {
-    return strpos($key, self::KEY_PREFIX) === 0;
-  }
-
-
-  private static function prepareKey($key) {
-    return self::isSystemKey($key) ? substr($key, strlen(self::KEY_PREFIX)) : $key;
   }
 
   private function parseTransactionData($body) {

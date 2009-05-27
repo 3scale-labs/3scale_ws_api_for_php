@@ -10,7 +10,9 @@ Include the "lib/ThreeScaleInterface.php" file:
 
 Create interface object:
 
-  $interface = new ThreeScaleInterface("http://3scale.net", "your_provider_key");
+  $interface = new ThreeScaleInterface("backend_hostname", "your_provider_key");
+
+You can find the backend hostname on http://www.3scale.net/support/api .
 
 Because the object is stateless, you can create just one and store it globally.
 
@@ -60,7 +62,7 @@ this plugin.
 
     <?php
 
-    $interface = new ThreeScaleInterface('http://www.3scale.net', 'your provider key...');
+    $interface = new ThreeScaleInterface($backend_hostname, $provider_key);
 
     $user_key = $_GET["user_key"];
 

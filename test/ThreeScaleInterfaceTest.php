@@ -21,7 +21,7 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
   function setUp() {
     $this->http = new MockCurl($this);
     $this->interface = new ThreeScaleInterface('http://3scale.net',
-      'pak123', $this->http);
+      '3scale-pak123', $this->http);
   }
 
   // "start" tests
@@ -75,48 +75,28 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
 
   function testStartShouldSendUsageData() {
     $this->http->expectOnce('post', array('http://3scale.net/transactions.xml',
-        array('user_key' => 'uk456', 'provider_key' => 'pak123',
+        array('user_key' => '3scale-uk456', 'provider_key' => '3scale-pak123',
           'usage' => array('hits' => 1))));
     $this->http->setReturnValue('post',
       $this->stubResponse('<transaction></transaction>', 200));
 
-    $this->interface->start('uk456', array('hits' => 1));
+    $this->interface->start('3scale-uk456', array('hits' => 1));
   }
 
   function testStartShouldReturnTransactionDataOnSuccess() {
     $body = '<transaction>
                <id>42</id>
-               <provider_verification_key>pvk789</provider_verification_key>
+               <provider_verification_key>3scale-pvk789</provider_verification_key>
                <contract_name>ultimate</contract_name>
              </transaction>';
 
     $this->http->setReturnValue('post', $this->stubResponse($body, 200));
 
-    $result = $this->interface->start('uk456', array('clicks' => 1));
+    $result = $this->interface->start('3scale-uk456', array('clicks' => 1));
 
     $this->assertIdentical('42', $result['id']);
-    $this->assertIdentical('pvk789', $result['provider_verification_key']);
+    $this->assertIdentical('3scale-pvk789', $result['provider_verification_key']);
     $this->assertIdentical('ultimate', $result['contract_name']);
-  }
-
-  function testStartShouldStrip3scalePrefixFromUserKeyBeforeSending() {
-    $this->http->expectOnce('post', array('*',
-        array('user_key' => 'foo', 'provider_key' => 'pak123',
-        'usage' => array())));
-    $this->http->setReturnValue('post',
-      $this->stubResponse('<transaction></transaction>', 200));
-
-    $this->interface->start('3scale-foo');
-  }
-
-  function testStartShouldLeaveUserKeyUnchangedIfItDoesNotContain3scalePrefix() {
-    $this->http->expectOnce('post', array('*',
-        array('user_key' => 'foo', 'provider_key' => 'pak123',
-        'usage' => array())));
-    $this->http->setReturnValue('post',
-      $this->stubResponse('<transaction></transaction>', 200));
-
-    $this->interface->start('foo');
   }
 
   // "confirm" tests
@@ -155,7 +135,7 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
   function testConfirmShouldSendUsageData() {
     $this->http->expectOnce('post', array(
       'http://3scale.net/transactions/42/confirm.xml',
-        array('provider_key' => 'pak123', 'usage' => array('hits' => 1))));
+        array('provider_key' => '3scale-pak123', 'usage' => array('hits' => 1))));
     $this->http->setReturnValue('post', $this->stubResponse('', 200));
 
     $this->interface->confirm(42, array('hits' => 1));
@@ -189,20 +169,12 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
   function testCancelShouldReturnTrueOnSuccess() {
     $this->http->expectOnce('delete',
       array('http://3scale.net/transactions/42.xml',
-        array('provider_key' => 'pak123')));
+        array('provider_key' => '3scale-pak123')));
 
     $this->http->setReturnValue('delete', $this->stubResponse('', 200));
 
     $result = $this->interface->cancel(42);
     $this->assertTrue($result);
-  }
-
-
-  // other tests
-
-  function testShouldIdentify3scaleKeys() {
-    $this->assertTrue(ThreeScaleInterface::isSystemKey('3scale-foo'));
-    $this->assertFalse(ThreeScaleInterface::isSystemKey('foo'));
   }
 
   // helpers
