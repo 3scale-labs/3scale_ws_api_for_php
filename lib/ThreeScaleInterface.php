@@ -181,6 +181,34 @@ class ThreeScaleInterface {
     }
   }
 
+  /**
+   * Authorize an user with given key.
+   *
+   * This returns true, if the user key exists, is valid, the contract is active and the
+   * usage limits or credit are not exceeded. In other case, it throws an exception.
+   *
+   * @param $userKey Key that uniquely identifies an user of the service.
+   *
+   * @return true
+   *
+   * @throws ThreeScaleUserKeyInvalid
+   *
+   */
+  public function authorize($userKey) {
+    $url = $this->getHost() . "/transactions/authorize.xml";
+    $params = array(
+      'provider_key' => $this->getProviderAuthenticationKey(), 
+      'user_key' => $userKey);
+
+    $response = $this->http->get($url, $params);
+
+    if ($response->headers['Status-Code'] == 200) {
+      return true;
+    } else {
+      $this->handleError($response->body);
+    }
+  }
+
   private function parseTransactionData($body) {
     $xml = new SimpleXMLElement($body);
     $result = array();

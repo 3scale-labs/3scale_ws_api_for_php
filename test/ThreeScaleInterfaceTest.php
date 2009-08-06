@@ -20,7 +20,7 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
 
   function setUp() {
     $this->http = new MockCurl($this);
-    $this->interface = new ThreeScaleInterface('http://3scale.net',
+    $this->interface = new ThreeScaleInterface('http://server.3scale.net',
       '3scale-pak123', $this->http);
   }
 
@@ -74,7 +74,7 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
   }
 
   function testStartShouldSendUsageData() {
-    $this->http->expectOnce('post', array('http://3scale.net/transactions.xml',
+    $this->http->expectOnce('post', array('http://server.3scale.net/transactions.xml',
         array('user_key' => '3scale-uk456', 'provider_key' => '3scale-pak123',
           'usage' => array('hits' => 1))));
     $this->http->setReturnValue('post',
@@ -134,7 +134,7 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
 
   function testConfirmShouldSendUsageData() {
     $this->http->expectOnce('post', array(
-      'http://3scale.net/transactions/42/confirm.xml',
+      'http://server.3scale.net/transactions/42/confirm.xml',
         array('provider_key' => '3scale-pak123', 'usage' => array('hits' => 1))));
     $this->http->setReturnValue('post', $this->stubResponse('', 200));
 
@@ -168,7 +168,7 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
 
   function testCancelShouldReturnTrueOnSuccess() {
     $this->http->expectOnce('delete',
-      array('http://3scale.net/transactions/42.xml',
+      array('http://server.3scale.net/transactions/42.xml',
         array('provider_key' => '3scale-pak123')));
 
     $this->http->setReturnValue('delete', $this->stubResponse('', 200));
@@ -176,6 +176,74 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
     $result = $this->interface->cancel(42);
     $this->assertTrue($result);
   }
+
+  // "authorize" tests
+
+  function testAuthorizeShouldThrowExceptionOnInvalidUserKey() {
+    $this->http->setReturnValue('get',
+      $this->stubError('user.invalid_key', 403),
+      array(
+        'http://server.3scale.net/transactions/authorize.xml',
+        array('provider_key' => '3scale-pak123', 'user_key' => 'invalid_key')));
+
+
+    $this->expectException(new ThreeScaleUserKeyInvalid);
+    $this->interface->authorize('invalid_key');
+  }
+
+  function testAuthorizeShouldThrowExceptionOnInvalidProviderKey() {
+    $this->http->setReturnValue('get',
+      $this->stubError('provider.invalid_key', 403),
+      array(
+        'http://server.3scale.net/transactions/authorize.xml',
+        array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+
+    $this->expectException(new ThreeScaleProviderKeyInvalid);
+    $this->interface->authorize('uk456');
+  }
+
+  function testAuthorizeShouldThrowExceptionOnInactiveContract() {
+    $this->http->setReturnValue('get',
+      $this->stubError('user.inactive_contract', 403),
+      array(
+        'http://server.3scale.net/transactions/authorize.xml',
+        array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+
+    $this->expectException(new ThreeScaleContractNotActive);
+    $this->interface->authorize('uk456');
+  }
+
+  function testAuthorizeShouldThrowExceptionOnExceededLimits() {
+    $this->http->setReturnValue('get',
+      $this->stubError('user.exceeded_limits', 403),
+      array(
+        'http://server.3scale.net/transactions/authorize.xml',
+        array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+
+    $this->expectException(new ThreeScaleLimitsExceeded);
+    $this->interface->authorize('uk456');
+  }
+
+  function testAuthorizeShouldThrowExceptionOnUnexpectedError() {
+    $this->http->setReturnValue('get', $this->stubResponse('', 500),
+      array(
+        'http://server.3scale.net/transactions/authorize.xml',
+        array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+
+    $this->expectException(new ThreeScaleUnknownException);
+    $this->interface->authorize('uk456');
+  }
+
+  function testAuthorizeShouldReturnTrueOnSuccess() {
+    $this->http->setReturnValue('get', $this->stubResponse('', 200),
+      array(
+        'http://server.3scale.net/transactions/authorize.xml',
+        array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+
+    $result = $this->interface->authorize('uk456');
+    $this->assertTrue($result);
+  }
+
 
   // helpers
 
