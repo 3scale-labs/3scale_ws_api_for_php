@@ -93,6 +93,38 @@ this plugin.
 
     ?>
 
+Batch processing
+
+This is another way to report transactions, useful mostly for high load services.
+
+1. Authorize each new key with the authorize method:
+
+  $interface->authorize($user_key);
+
+This either returns true if the key is valid and active and not exceeding usage limits or credit, or raises corresponding exception if not.
+
+2. For each subsequent request, check it's you've already authorized it's key, if yes, serve it
+and store localy the usage data.
+
+3. Then, from time to time, report all these stored data with single call, for example:
+
+  $interface->batchReport(array(
+    0 => array(
+      'user_key' => '3scale-f762ce8f234b6605c760b47d0bd55a18',
+      'usage' => array('hits' => 1, 'transfer' => 2048),
+      'timestamp' => mktime(18, 33, 10, 2009, 8, 4)),
+    1 => array(
+      'user_key' => '3scale-ff762ce8f234b6605c760b47d0bd55a1',
+      'usage' => array('hits' => 1, 'transfer' => 14021),
+      'timestamp' => mktime(18, 38, 12, 2009, 8, 4)),
+    2 => array(
+      'user_key' => '3scale-ff762ce8f234b6605c760b47d0bd55a1',
+      'usage' => array('hits' => 1, 'transfer' => 8167),
+      'timestamp' => mktime(18, 52, 55, 2009, 8, 4))));
+
+Depending on the application needs, it might be good idea to reauthorize the keys after some time
+interval passes or after certain request with this key were made.
+
 
 Legal
 
