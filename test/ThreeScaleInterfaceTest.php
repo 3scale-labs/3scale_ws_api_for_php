@@ -22,6 +22,8 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
     $this->http = new MockCurl($this);
     $this->interface = new ThreeScaleInterface('http://server.3scale.net',
       '3scale-pak123', $this->http);
+
+    date_default_timezone_set('Europe/Madrid');
   }
 
   // "start" tests
@@ -180,70 +182,142 @@ class ThreeScaleInterfaceTest extends UnitTestCase {
   // "authorize" tests
 
   function testAuthorizeShouldThrowExceptionOnInvalidUserKey() {
-    $this->http->setReturnValue('get',
-      $this->stubError('user.invalid_key', 403),
-      array(
-        'http://server.3scale.net/transactions/authorize.xml',
-        array('provider_key' => '3scale-pak123', 'user_key' => 'invalid_key')));
-
-
+    $this->http->expectOnce('get', array(
+      'http://server.3scale.net/transactions/authorize.xml',
+      array('provider_key' => '3scale-pak123', 'user_key' => 'invalid_key')));
+    $this->http->setReturnValue('get', $this->stubError('user.invalid_key', 403));
     $this->expectException(new ThreeScaleUserKeyInvalid);
+
     $this->interface->authorize('invalid_key');
   }
 
   function testAuthorizeShouldThrowExceptionOnInvalidProviderKey() {
-    $this->http->setReturnValue('get',
-      $this->stubError('provider.invalid_key', 403),
-      array(
-        'http://server.3scale.net/transactions/authorize.xml',
-        array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
-
+    $this->http->expectOnce('get', array(
+      'http://server.3scale.net/transactions/authorize.xml',
+      array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+    $this->http->setReturnValue('get', $this->stubError('provider.invalid_key', 403));
     $this->expectException(new ThreeScaleProviderKeyInvalid);
+
     $this->interface->authorize('uk456');
   }
 
   function testAuthorizeShouldThrowExceptionOnInactiveContract() {
-    $this->http->setReturnValue('get',
-      $this->stubError('user.inactive_contract', 403),
-      array(
-        'http://server.3scale.net/transactions/authorize.xml',
-        array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
-
+    $this->http->expectOnce('get', array(
+      'http://server.3scale.net/transactions/authorize.xml',
+      array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+    $this->http->setReturnValue('get', $this->stubError('user.inactive_contract', 403));
     $this->expectException(new ThreeScaleContractNotActive);
+
     $this->interface->authorize('uk456');
   }
 
   function testAuthorizeShouldThrowExceptionOnExceededLimits() {
-    $this->http->setReturnValue('get',
-      $this->stubError('user.exceeded_limits', 403),
-      array(
-        'http://server.3scale.net/transactions/authorize.xml',
-        array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
-
+    $this->http->expectOnce('get', array(
+      'http://server.3scale.net/transactions/authorize.xml',
+      array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+    $this->http->setReturnValue('get', $this->stubError('user.exceeded_limits', 403));
     $this->expectException(new ThreeScaleLimitsExceeded);
+
     $this->interface->authorize('uk456');
   }
 
   function testAuthorizeShouldThrowExceptionOnUnexpectedError() {
-    $this->http->setReturnValue('get', $this->stubResponse('', 500),
-      array(
-        'http://server.3scale.net/transactions/authorize.xml',
-        array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
-
+    $this->http->expectOnce('get', array(
+      'http://server.3scale.net/transactions/authorize.xml',
+      array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+    $this->http->setReturnValue('get', $this->stubResponse('', 500));
     $this->expectException(new ThreeScaleUnknownException);
+
     $this->interface->authorize('uk456');
   }
 
   function testAuthorizeShouldReturnTrueOnSuccess() {
-    $this->http->setReturnValue('get', $this->stubResponse('', 200),
-      array(
-        'http://server.3scale.net/transactions/authorize.xml',
-        array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+    $this->http->expectOnce('get', array(
+      'http://server.3scale.net/transactions/authorize.xml',
+      array('provider_key' => '3scale-pak123', 'user_key' => 'uk456')));
+    $this->http->setReturnValue('get', $this->stubResponse('', 200));
 
     $result = $this->interface->authorize('uk456');
     $this->assertTrue($result);
   }
 
+  // "batchReport" tests
+
+  function testBatchReportShouldReturnTrueOnSuccess() {
+    $this->http->expectOnce('post', array(
+      'http://server.3scale.net/transactions.xml',
+      array(
+        'provider_key' => '3scale-pak123',
+        'transactions' => array(
+          '0' => array(
+            'user_key' => 'uk0',
+            'usage' => array('hits' => 1)),
+          '1' => array(
+            'user_key' => 'uk1',
+            'usage' => array('hits' => 1))))));
+    $this->http->setReturnValue('post', $this->stubResponse('', 200));
+
+    $result = $this->interface->batchReport(array(
+      0 => array('user_key' => 'uk0', 'usage' => array('hits' => 1)),
+      1 => array('user_key' => 'uk1', 'usage' => array('hits' => 1))));
+
+    $this->assertTrue($result);
+  }
+
+  function testBatchReportShouldThrowExceptionIfAnyOfTheTransactionIsInvalid() {
+    $this->http->expectOnce('post', array(
+      'http://server.3scale.net/transactions.xml',
+      array(
+        'provider_key' => '3scale-pak123',
+        'transactions' => array(
+          '0' => array(
+            'user_key' => 'uk0',
+            'usage' => array('hits' => 1)),
+          '1' => array(
+            'user_key' => 'uk1',
+            'usage' => array('hits' => 1))))));
+    $this->http->setReturnValue('post', $this->stubResponse(
+      '<errors>
+         <error index="0" id="user.invalid_key">user_key is invalid</error>
+         <error index="1" id="user.inactive_contract">contract is not active</error>
+       </errors>', 403));
+
+    try {
+      $result = $this->interface->batchReport(array(
+        0 => array('user_key' => 'uk0', 'usage' => array('hits' => 1)),
+        1 => array('user_key' => 'uk1', 'usage' => array('hits' => 1))));
+
+      $this->fail('Expected ThreeScaleBatchException, none thrown.');
+    } catch (ThreeScaleBatchException $exception) {
+      $errors = $exception->getErrors();
+
+      $this->assertEqual(2, count($errors));
+      $this->assertEqual(
+        array('code' => 'user.invalid_key', 'message' => 'user_key is invalid'),
+        $errors[0]);
+      $this->assertEqual(
+        array('code' => 'user.inactive_contract', 'message' => 'contract is not active'),
+        $errors[1]);
+    }
+  }
+
+  function testBatchReportWithTimestampsShouldConvertTimestampsToFormatUnderstoodByTheBackend() {
+    $this->http->expectOnce('post', array(
+      'http://server.3scale.net/transactions.xml',
+      array(
+        'provider_key' => '3scale-pak123',
+        'transactions' => array(
+          '0' => array(
+            'user_key' => 'uk0',
+            'usage' => array('hits' => 1),
+            'timestamp' => '2009-08-11 12:45:22 +02:00')))));
+    $this->http->setReturnValue('post', $this->stubResponse('', 200));
+
+    $this->interface->batchReport(array(
+      0 => array(
+        'user_key' => 'uk0', 'usage' => array('hits' => 1),
+        'timestamp' => mktime(12, 45, 22, 8, 11, 2009))));
+  }
 
   // helpers
 

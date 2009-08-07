@@ -191,8 +191,11 @@ class ThreeScaleInterface {
    *
    * @return true
    *
-   * @throws ThreeScaleUserKeyInvalid
-   *
+   * @throws ThreeScaleUserKeyInvalid $userKey is not valid
+   * @throws ThreeScaleProviderKeyInvalid $providerAuthenticationKey is not valid
+   * @throws ThreeScaleContractNotActive contract is not active
+   * @throws ThreeScaleLimitsExceeded usage limits are exceeded
+   * @throws ThreeScaleUnknownError some other unexpected error
    */
   public function authorize($userKey) {
     $url = $this->getHost() . "/transactions/authorize.xml";
@@ -207,6 +210,93 @@ class ThreeScaleInterface {
     } else {
       $this->handleError($response->body);
     }
+  }
+
+  /**
+   * Report multiple transactions in single batch.
+   *
+   * @param $transaction an array containing one item per each transaction that is to be 
+   * reported. Each item should be associative array with these items:
+   *
+   *  - <var>user_key</var>: (required) user key for the transaction.
+   *  - <var>usage</var>: (required) associative array of usage data (see below).
+   *  - <var>timestamp</var>: (optional) date and time when the transaction was registered. Can 
+   *  be left out, in which case current time will be used. This has to be an integer 
+   *  representing unix timestamp (number of seconds since 1.1.1970). The unix timestamp can be
+   *  obtained for example with PHP's buliding function <code>time()</code>.
+   *
+   *  Warning: make sure you have correctly set your timezone. This can be done in PHP with
+   *  the function <code>date_default_timezone_set()</code>.
+   *
+   *  The <var>usage</var> parameter should be an array in the form
+   *  array('metric_name' => value, ...), where <var>metric_name</var> is a name of the metric
+   *  and <var>value</var> is integer value you want to report for that metric.
+   *
+   *  @return true only if <strong>all</strong> transactions were processed successfuly. In
+   *  other case, exception is thrown.
+   *
+   *  @throws ThreeScaleBatchException if there was error in processing at least one transaction.
+   *  This exception contains member function getErrors(), which returns array of all errors
+   *  that occured in the processing. The array contains one item per each error that occured.
+   *  Each item is indexed with the same index as the transaction that caused it. Each item
+   *  is array itself, with two elements: <var>code</var> and <var>message</var>. Code contains
+   *  identifier of the error and message is human readable description.
+   *   
+   *  Example:
+   *
+   *  This will report three transactions in single batch. First transaction is for one user,
+   *  the other two are for other user (note the user_keys). The timestamps are specified and
+   *  generated with PHP's builtin function <code>mktime()</code>.
+   *  The usage contains data for two metrics: hits and transfer.
+   *
+   *  $interface->batchReport(array(
+   *    0 => array(
+   *      'user_key' => '3scale-f762ce8f234b6605c760b47d0bd55a18',
+   *      'usage' => array('hits' => 1, 'transfer' => 2048),
+   *      'timestamp' => mktime(18, 33, 10, 2009, 8, 4)),
+   *    1 => array(
+   *      'user_key' => '3scale-ff762ce8f234b6605c760b47d0bd55a1',
+   *      'usage' => array('hits' => 1, 'transfer' => 14021),
+   *      'timestamp' => mktime(18, 38, 12, 2009, 8, 4)),
+   *    2 => array(
+   *      'user_key' => '3scale-ff762ce8f234b6605c760b47d0bd55a1',
+   *      'usage' => array('hits' => 1, 'transfer' => 8167),
+   *      'timestamp' => mktime(18, 52, 55, 2009, 8, 4))));
+   *
+   */
+  public function batchReport($transactions) {
+    $url = $this->getHost() . "/transactions.xml";
+    $params = array(
+      'provider_key' => $this->getProviderAuthenticationKey(),
+      'transactions' => array());
+
+    foreach($transactions as $index => $transaction) {
+      if (isset($transaction['timestamp'])) {
+        $transaction['timestamp'] = date('Y-m-d H:i:s P', $transaction['timestamp']);
+      }
+
+      $params['transactions'][(string) $index] = $transaction;
+    }
+
+    $response = $this->http->post($url, $params);
+
+    if ($response->headers['Status-Code'] == 200) {
+      return true;
+    } else {
+      throw new ThreeScaleBatchException($this->parseBatchError($response->body));
+    }
+  }
+
+  private function parseBatchError($body) {
+    $xml = new SimpleXMLElement($body);
+    $result = array();
+
+    foreach ($xml as $error) {
+      $result[(string) $error['index']] = array(
+        'code' => (string) $error['id'], 'message' => (string) $error);
+    }
+
+    return $result;
   }
 
   private function parseTransactionData($body) {
@@ -314,5 +404,20 @@ class ThreeScaleSystemException extends ThreeScaleException {}
  * Other error.
  */
 class ThreeScaleUnknownException extends ThreeScaleSystemException {}
+
+/**
+ * Exception thrown batch batch reporting. Can contain multiple errors.
+ */
+class ThreeScaleBatchException extends ThreeScaleException {
+  private $errors;
+
+  public function __construct($errors) {
+    $this->errors = $errors;
+  }
+
+  public function getErrors() {
+    return $this->errors;
+  }
+}
 
 ?>
