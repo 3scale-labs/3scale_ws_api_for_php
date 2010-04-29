@@ -1,11 +1,8 @@
 <?php
 
-// Simpletest uses some deprecated stuff. I don't want my test output to be cluttered by it.
 error_reporting(E_ALL & ~E_DEPRECATED);
 require_once('simpletest/unit_tester.php');
 require_once('simpletest/autorun.php');
-
-// Now enabled full error reporting.
 error_reporting(E_ALL | E_NOTICE);
 
 date_default_timezone_set('Europe/Madrid');
