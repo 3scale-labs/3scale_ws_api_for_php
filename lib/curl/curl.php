@@ -65,7 +65,6 @@ class Curl
         # Set some default CURL options
         curl_setopt($this->handle, CURLOPT_COOKIEFILE, $this->cookie_file);
         curl_setopt($this->handle, CURLOPT_COOKIEJAR, $this->cookie_file);
-        curl_setopt($this->handle, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($this->handle, CURLOPT_HEADER, true);
         curl_setopt($this->handle, CURLOPT_POSTFIELDS, (is_array($vars) ? http_build_query($vars, '', '&') : $vars));
         curl_setopt($this->handle, CURLOPT_REFERER, $this->referer);
@@ -119,7 +118,7 @@ class CurlResponse
         # Extract headers from response
         $pattern = '#HTTP/\d\.\d.*?$.*?\r\n\r\n#ims';
         preg_match_all($pattern, $response, $matches);
-        $headers = split("\r\n", str_replace("\r\n\r\n", '', array_pop($matches[0])));
+        $headers = explode("\r\n", str_replace("\r\n\r\n", '', array_pop($matches[0])));
         
         # Extract the version and status from the first header
         $version_and_status = array_shift($headers);
