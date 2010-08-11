@@ -1,8 +1,6 @@
 <?php
 
-require(dirname(__FILE__) . '/../lib/ThreeScaleInterface.php');
-
-$host = "http://server.3scale.net";
+require(dirname(__FILE__) . '/../lib/ThreeScaleClient.php');
 
 // Put your provider authentication key here:
 $provider_key = "xxx";
@@ -18,22 +16,15 @@ $response = $client->authorize($user_key_one);
 
 // Check the response type
 if ($response->isSuccess()) {
-	// All fine, proceeed & pull the usages
-	$usages = $response->getUsages();
-	
-	echo "Success: " . $response->getPlan();
-	echo "Success: " . var_export($usages, true);
+	// All fine, proceeed & pull the usage reports
+	$usageReports = $response->getUsageReports();
 
-	// Handle the current issues with the test keys
-	if (count($usages) > 0) {
-		$usage = $usages[0];
-		echo "Success: " . var_export($usage, true);		  
-	}
+  echo "Success:"
+	echo "  Plan: " .          $response->getPlan();
+	echo "  Usage reports: " . var_export($usageReports, true);
 } else {
 	// Something's wrong with this user.
-	$errors = $response->getErrors();
-	$error  = $errors[0];
-	echo "Error: " . var_export($error->getMessage(), true);
+	echo "Error: " . $response->getErrorMessage();
 }
 	
 // Report some usages

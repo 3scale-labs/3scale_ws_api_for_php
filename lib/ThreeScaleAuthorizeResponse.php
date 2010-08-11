@@ -12,14 +12,8 @@ require_once(dirname(__FILE__) . '/ThreeScaleResponse.php');
  * Object that wraps responses from successful authorize calls.
  */
 class ThreeScaleAuthorizeResponse extends ThreeScaleResponse {
-  private $usages;
+  private $usageReports = array();
   private $plan;
-
-  public function __construct($success = true) {
-    parent::__construct($success);
-    $this->usages = array();
-
-  }
 
   /**
    * @internal Set plan name.
@@ -38,24 +32,24 @@ class ThreeScaleAuthorizeResponse extends ThreeScaleResponse {
   }
 
   /**
-   * @internal Add usage entry.
+   * @internal Add usage report entry.
    */
-  public function addUsage() {
-    $usage = new ThreeScaleAuthorizeResponseUsage;
-    array_push($this->usages, $usage);
-    return $usage;
+  public function addUsageReport() {
+    $usageReport = new ThreeScaleAuthorizeResponseUsageReport;
+    array_push($this->usageReports, $usageReport);
+    return $usageReport;
   }
 
   /**
-   * Get list of usage status entries.
+   * Get list of usage report entries.
    *
    * There will be one entry per each usage limit defined on the plan the used
    * is signed up to.
    *
    * @see ThreeScaleAuthorizeResponseUsage
    */
-  public function getUsages() {
-    return $this->usages;
+  public function getUsageReports() {
+    return $this->usageReports;
   }
 }
 
@@ -65,7 +59,7 @@ class ThreeScaleAuthorizeResponse extends ThreeScaleResponse {
  *
  * One object of this class always corresponds to one usage limit defined on the plan.
  */
-class ThreeScaleAuthorizeResponseUsage {
+class ThreeScaleAuthorizeResponseUsageReport {
   private $metric;
   private $period;
   private $periodStart;
@@ -176,6 +170,13 @@ class ThreeScaleAuthorizeResponseUsage {
   public function setMaxValue($value) {
     $this->maxValue = $value;
     return $this;
+  }
+
+  /** 
+   * Is the usage limit corresponding to this report exceeded?
+   */
+  public function isExceeded() {
+    return $this->getCurrentValue() > $this->getMaxValue();
   }
 }
 

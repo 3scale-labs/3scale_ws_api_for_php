@@ -28,8 +28,8 @@ if (getenv('TEST_3SCALE_PROVIDER_KEY') && getenv('TEST_3SCALE_USER_KEYS')) {
       $response = $this->client->authorize('invalid-user-key');
       $this->assertFalse($response->isSuccess());
 
-      $errors = $response->getErrors();
-      $this->assertEqual('user.invalid_key', $errors[0]->getCode());
+      $this->assertEqual('user_key_invalid', $response->getErrorCode());
+      $this->assertEqual('user key "invalid-user-key" is invalid', $response->getErrorMessage());
     }
 
     function testSuccessfulReport() {
@@ -48,15 +48,13 @@ if (getenv('TEST_3SCALE_PROVIDER_KEY') && getenv('TEST_3SCALE_USER_KEYS')) {
         array_push($transactions, array('user_key' => $userKey, 'usage' => array('hits' => 1)));
       }
 
-      $transactions[0]['user_key'] = 'invalid-user-key';
-
-      $response = $this->client->report($transactions);
+      $client = new ThreeScaleClient('invalid-provider-key');
+      $response = $client->report($transactions);
+      
       $this->assertFalse($response->isSuccess());
-
-      $errors = $response->getErrors();
-      $this->assertEqual(1, count($errors));
-      $this->assertEqual(0, $errors[0]->getIndex());
-      $this->assertEqual('user.invalid_key', $errors[0]->getCode());
+      $this->assertEqual('provider_key_invalid', $response->getErrorCode());
+      $this->assertEqual('provider key "invalid-provider-key" is invalid', 
+                         $response->getErrorMessage());
     }
   }
 

@@ -19,7 +19,7 @@ require_once(dirname(__FILE__) . '/ThreeScaleAuthorizeResponse.php');
  * transactions and by multiple clients.
  */
 class ThreeScaleClient {
-  const DEFAULT_HOST = 'server.3scale.net';
+  const DEFAULT_HOST = 'su1.3scale.net';
 
   private $providerKey;
   private $host;
@@ -62,20 +62,14 @@ class ThreeScaleClient {
   }
 
   /**
-   * Authorize an user with given key.
+   * Authorize an user.
    *
    * @param $userKey user's API key.
    *
    * @return ThreeScaleResponse object containing additional authorization information.
-   *
-   * If the authorization is successful, the isSuccess() method of the returned object
-   * returns true. In this case, the returned object is actually 
-   * ThreeScaleAuthorizeResponse (which is subclass of ThreeScaleResponse) and contains
-   * additional information about status of the user. See @see ThreeScaleAuthorizeResponse
-   * for more details.
-   * 
-   * In case of error, the isSuccess() method returns false. See @see ThreeScaleResponse for
-   * more information about how to get more details about the errors.
+   * If both provider key and user key are valid, the returned object is actually
+   * @see ThreeScaleAuthorizeResponse (which is derived from ThreeScaleResponse) and
+   * contains additional information about the usage status.
    *
    * @see ThreeScaleResponse
    * @see ThreeScaleAuthorizeResponse
@@ -186,10 +180,16 @@ class ThreeScaleClient {
     $response = new ThreeScaleAuthorizeResponse;
     $doc = new SimpleXMLElement($body);
 
+    if ((string) $doc->authorized == 'true') {
+      $response->setSuccess();
+    } else {
+      $response->setError((string) $doc->reason);
+    }
+
     $response->setPlan((string) $doc->plan);
 
-    foreach ($doc->usage as $node) {
-      $response->addUsage()
+    foreach ($doc->usage_reports->usage_report as $node) {
+      $response->addUsageReport()
         ->setMetric(trim($node['metric']))
         ->setPeriod(trim($node['period']))
         ->setPeriodInterval((string) $node->period_start, (string) $node->period_end)
@@ -204,11 +204,7 @@ class ThreeScaleClient {
     $response = new ThreeScaleResponse(false);
     $doc = new SimpleXMLElement($body);
 
-    foreach ($doc->xpath('//error') as $node) {
-      $errorCode = $node['code'] ? $node['code'] : $node['id'];
-      $response->addError($node['index'], $errorCode, trim((string) $node));
-    }
-
+    $response->setError(trim((string) $doc), $doc['code']);
     return $response;
   }
 

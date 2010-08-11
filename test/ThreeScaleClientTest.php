@@ -38,65 +38,97 @@ class ThreeScaleClientTest extends UnitTestCase {
   function testDefaultHost() {
     $client = new ThreeScaleClient('1234abcd');
 
-    $this->assertEqual('server.3scale.net', $client->getHost());
+    $this->assertEqual('su1.3scale.net', $client->getHost());
   }
   
   function testSuccessfulAuthorize() {
     $body = '<status>
+               <authorized>true</authorized>
                <plan>Ultimate</plan>
-              
-               <usage metric="hits" period="day">
-                 <period_start>2010-04-26 00:00:00</period_start>
-                 <period_end>2010-04-26 23:59:59</period_end>
-                 <current_value>10023</current_value>
-                 <max_value>50000</max_value>
-               </usage>
+             
+               <usage_reports>
+                 <usage_report metric="hits" period="day">
+                   <period_start>2010-04-26 00:00:00 +0000</period_start>
+                   <period_end>2010-04-27 00:00:00 +0000</period_end>
+                   <current_value>10023</current_value>
+                   <max_value>50000</max_value>
+                 </usage_report>
 
-               <usage metric="hits" period="month">
-                 <period_start>2010-04-01 00:00:00</period_start>
-                 <period_end>2010-04-30 23:59:59</period_end>
-                 <current_value>999872</current_value>
-                 <max_value>150000</max_value>
-               </usage>
-               </status>';
+                 <usage_report metric="hits" period="month">
+                   <period_start>2010-04-01 00:00:00 +0000</period_start>
+                   <period_end>2010-05-01 00:00:00 +0000</period_end>
+                   <current_value>999872</current_value>
+                   <max_value>150000</max_value>
+                 </usage_report>
+               </usage_reports>
+             </status>';
 
     $this->httpClient->setReturnValue('get', new StubResponse(200, $body));
     $response = $this->client->authorize('foo');
 
     $this->assertTrue($response->isSuccess());
     $this->assertEqual('Ultimate', $response->getPlan());
-    $this->assertEqual(2, count($response->getUsages()));
+    $this->assertEqual(2, count($response->getUsageReports()));
 
-    $usages = $response->getUsages();
+    $usageReports = $response->getUsageReports();
 
-    $this->assertEqual('day',                           $usages[0]->getPeriod());
-    $this->assertEqual(mktime(0, 0, 0, 4, 26, 2010),    $usages[0]->getPeriodStart());
-    $this->assertEqual(mktime(23, 59, 59, 4, 26, 2010), $usages[0]->getPeriodEnd());
-    $this->assertEqual(10023,                           $usages[0]->getCurrentValue());
-    $this->assertEqual(50000,                           $usages[0]->getMaxValue());
+    $this->assertEqual('day',                           $usageReports[0]->getPeriod());
+    $this->assertEqualTime('2010-04-26 00:00:00 +0000', $usageReports[0]->getPeriodStart());
+    $this->assertEqualTime('2010-04-27 00:00:00 +0000', $usageReports[0]->getPeriodEnd());
+    $this->assertEqual(10023,                           $usageReports[0]->getCurrentValue());
+    $this->assertEqual(50000,                           $usageReports[0]->getMaxValue());
     
-    $this->assertEqual('month',                         $usages[1]->getPeriod());
-    $this->assertEqual(mktime(0, 0, 0, 4, 1, 2010),     $usages[1]->getPeriodStart());
-    $this->assertEqual(mktime(23, 59, 59, 4, 30, 2010), $usages[1]->getPeriodEnd());
-    $this->assertEqual(999872,                          $usages[1]->getCurrentValue());
-    $this->assertEqual(150000,                          $usages[1]->getMaxValue());
+    $this->assertEqual('month',                         $usageReports[1]->getPeriod());
+    $this->assertEqualTime('2010-04-01 00:00:00 +0000', $usageReports[1]->getPeriodStart());
+    $this->assertEqualTime('2010-05-01 00:00:00 +0000', $usageReports[1]->getPeriodEnd());
+    $this->assertEqual(999872,                          $usageReports[1]->getCurrentValue());
+    $this->assertEqual(150000,                          $usageReports[1]->getMaxValue());
   }
   
-  function testFailedAuthorize() {
-    $errorBody ='<error code="user.exceeded_limits">
-                   usage limits are exceeded
-                 </error>';
+  function testAuthorizeWithExceededUsageLimits() {
+    $body = '<status>
+               <authorized>false</authorized>
+               <reason>usage limits are exceeded</reason>
 
-    $this->httpClient->setReturnValue('get', new StubResponse(403, $errorBody));
+               <plan>Ultimate</plan>
+             
+               <usage_reports>
+                 <usage_report metric="hits" period="day" exceeded="true">
+                   <period_start>2010-04-26 00:00:00 +0000</period_start>
+                   <period_end>2010-04-27 00:00:00 +0000</period_end>
+                   <current_value>50002</current_value>
+                   <max_value>50000</max_value>
+                 </usage_report>
+
+                 <usage_report metric="hits" period="month">
+                   <period_start>2010-04-01 00:00:00 +0000</period_start>
+                   <period_end>2010-05-01 00:00:00 +0000</period_end>
+                   <current_value>999872</current_value>
+                   <max_value>150000</max_value>
+                 </usage_report>
+               </usage_reports>
+             </status>';
+    
+    $this->httpClient->setReturnValue('get', new StubResponse(200, $body));
     $response = $this->client->authorize('foo');
 
     $this->assertFalse($response->isSuccess());
-    $this->assertEqual(1, count($response->getErrors()));
+    $this->assertEqual('usage limits are exceeded', $response->getErrorMessage());
 
-    $errors = $response->getErrors();
+    $usageReports = $response->getUsageReports();
 
-    $this->assertEqual('user.exceeded_limits', $errors[0]->getCode());
-    $this->assertEqual('usage limits are exceeded', $errors[0]->getMessage());
+    $this->assertTrue($usageReports[0]->isExceeded());
+  }
+
+  function testAuthorizeWithInvalidUserKey() {
+    $body = '<error code="user_key_invalid">user key "foo" is invalid</error>';
+    
+    $this->httpClient->setReturnValue('get', new StubResponse(403, $body));
+    $response = $this->client->authorize('foo');
+
+    $this->assertFalse($response->isSuccess());
+    $this->assertEqual('user_key_invalid',          $response->getErrorCode());
+    $this->assertEqual('user key "foo" is invalid', $response->getErrorMessage());
   }
   
   function testAuthorizeWithServerError() {
@@ -123,7 +155,7 @@ class ThreeScaleClientTest extends UnitTestCase {
   
   function testReportEncodesTransactions() {
     $this->httpClient->expectOnce('post',
-      array('http://server.3scale.net/transactions.xml',
+      array('http://' . ThreeScaleClient::DEFAULT_HOST . '/transactions.xml',
         array(
           'provider_key' => '1234abcd',
           'transactions' => array(
@@ -149,32 +181,15 @@ class ThreeScaleClientTest extends UnitTestCase {
   }
   
   function testFailedReport() {
-    $errorBody = '<errors>
-                    <error code="user.invalid_key" index="0">
-                      user key is invalid
-                    </error>
-                    <error code="provider.invalid_metric" index="1">
-                      metric does not exist
-                    </error>
-                  </errors>';
-
+    $errorBody = '<error code="provider_key_invalid">provider key "foo" is invalid</error>';
+    
     $this->httpClient->setReturnValue('post', new StubResponse(403, $errorBody));
-    $response = $this->client->report(array(
-      array('user_key' => 'bogus', 'usage' => array('hits' => 1)),
-      array('user_key' => 'bar',   'usage' => array('monkeys' => 1000000000))));
+    $response = $this->client->report(array(array('user_key' => 'abc', 
+                                                  'usage'    => array('hits' => 1))));
 
     $this->assertFalse($response->isSuccess());
-
-    $errors = $response->getErrors();
-    $this->assertEqual(2, count($errors));
-
-    $this->assertEqual(0,                     $errors[0]->getIndex());
-    $this->assertEqual('user.invalid_key',    $errors[0]->getCode());
-    $this->assertEqual('user key is invalid', $errors[0]->getMessage());
-
-    $this->assertEqual(1, $errors[1]->getIndex());
-    $this->assertEqual('provider.invalid_metric', $errors[1]->getCode());
-    $this->assertEqual('metric does not exist', $errors[1]->getMessage());
+    $this->assertEqual('provider_key_invalid',          $response->getErrorCode());
+    $this->assertEqual('provider key "foo" is invalid', $response->getErrorMessage());
   }
   
   function testReportWithServerError() {
@@ -182,6 +197,11 @@ class ThreeScaleClientTest extends UnitTestCase {
 
     $this->expectException(new ThreeScaleServerError);
     $this->client->report(array(array('user_key' => 'foo', 'usage' => array('hits' => 1))));
+  }
+
+  private function assertEqualTime($expected, $actual) {
+    $time = new DateTime($expected);
+    $this->assertEqual($time->getTimestamp(), $actual);
   }
 }
 

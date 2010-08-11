@@ -36,44 +36,41 @@ successful:
       // Something's wrong with this user.
     }
 
-If the authorization succeeded, the response object contains additional information about 
-the status of the user:
+If both provider and user keys are valid, the response object contains additional information 
+about the status of the user:
 
     // Returns the name of the plan the user is signed up to.
     $response->getPlan()
 
-If the plan has defined usage limits, the response contains details about how close the user
-is to meet these limits:
+If the plan has defined usage limits, the response contains details about the usage broken
+down by the metrics and usage limit periods.
 
-    // The usages array contains one element per each usage limit defined on the plan.
-    $usages = $response->getUsages();
-    $usage  = $usages[0];
+    // The usageReports array contains one element per each usage limit defined on the plan.
+    $usageReports = $response->getUsageReports();
+    $usageReport  = $usageReports[0];
 
     // The metric
-    $usage->getMetric() // "hits"
+    $usageReport->getMetric() // "hits"
 
     // The period the limit applies to
-    $usage->getPeriod()      // "day"
-    $usage->getPeriodStart() // 1272405600 (Unix timestamp for April 28, 2010, 00:00:00)
-    $usage->getPeriodEnd()   // 1272491999 (Unix timestamp for April 28, 2010, 23:59:59)
+    $usageReport->getPeriod()       // "day"
+    $usageReport->getPeriodStart()  // 1272405600 (Unix timestamp for April 28, 2010, 00:00:00)
+    $usageReport->getPeriodEnd()    // 1272492000 (Unix timestamp for April 29, 2010, 00:00:00)
 
     // The current value the user already consumed in the period
-    $usage->getCurrentValue() // 8032
+    $usageReport->getCurrentValue() // 8032
 
     // The maximal value allowed by the limit in the period
-    $usage->getMaxValue()     // 10000
+    $usageReport->getMaxValue()     // 10000
+  
+    // If the limit is exceeded, this will be true, otherwise false:
+    $usageReport->isExceeded()      // false
 
-If the authorization failed, the `getErrors()` method returns one or more errors with more
-detailed information:
-
-    $errors = $response->getErrors();
-    $error  = $errors[0];
-
-    // Error code
-    $error->getCode();    // "user.exceeded_limits"
-
-    // Human readable error message
-    $error->getMessage(); // "Usage limits are exceeded"
+If the authorization failed, the `getErrorCode()` returns system error code and 
+`getErrorMessage()` human readable error description:
+ 
+    $response->getErrorCode()       // "usage_limits_exceeded"
+    $response->getErrorMessage()    // "Usage limits are exceeded"
 
 ### Report
 
@@ -95,31 +92,25 @@ The timestamp can be either an unix timestamp (as integer) or a string. The stri
 format parseable by the [strtotime](http://php.net/manual/en/function.strtotime.php) function.
 For example:
 
-    "2010-04-28 12:38:33 +02:00"
+    "2010-04-28 12:38:33 +0200"
 
-If the timestamp is not in UTC, you have to specify a time offset. That's the "+02:00" 
+If the timestamp is not in UTC, you have to specify a time offset. That's the "+0200" 
 (two hours ahead of the Universal Coordinate Time) in the example above.
 
 Then call the `isSuccess()` method on the returned response object to see if the report was
 successful:
 
     if ($response->isSuccess()) {
-      # All OK.
+      // All OK.
     } else {
-      # There were some errors
+      // There was an error.
     }
 
-If the report was successful, you are done. Otherwise, the `getErrors()` method will return array
-of errors with more detailed information. Each of these errors has a `getIndex()` method that
-returns numeric index of the transaction this error corresponds to. For example, if you report
-three transactions, first two are ok and the last one has invalid user key, there will be
-an error in the `getErrors()` array with the `getIndex()` equal to 2 (the indices start at 0):
+In case of error, the `getErrorCode()` returns system error code and `getErrorMessage()`
+human readable error description:
 
-    $errors = $response->getErrors();
-    $error = $errors[0]
-    $error->getIndex()   // 2
-    $error->getCode()    // "user.invalid_key"
-    $error->getMessage() // "User key is invalid"
+    $response->getErrorCode()    // "provider_key_invalid"
+    $response->getErrorMessage() // "provider key \"foo\" is invalid"
 
 ## Legal
 

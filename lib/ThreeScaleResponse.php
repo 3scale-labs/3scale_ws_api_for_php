@@ -10,83 +10,53 @@
  * Object that wraps responses from 3scale server.
  */
 class ThreeScaleResponse {
-  private $success;
-  private $errors;
-
-  public function __construct($success) {
-    $this->success = $success;
-    $this->errors = array();
-  }
+  private $errorCode = null;
+  private $errorMessage = null;
 
   /**
    * Was the resposne successful?
    *
    * @return true if yes, false if not
    *
-   * If the response is not successful, the getErrors() method returns list of errors with
-   * more detailed information.
+   * If the response is not successful, the getErrorCode() and getErrorMessage() methods 
+   * return more more detailed information about the error.
    */
   public function isSuccess() {
-    return $this->success;
+    return is_null($this->errorCode) && is_null($this->errorMessage);
   }
 
   /**
-   * List of errors, in case the response was not successful.
+   * System error code.
    *
-   * @return array of ThreeScaleResponseError objects.
+   * @return string system error code
    */
-  public function getErrors() {
-    return $this->errors;
+  public function getErrorCode() {
+    return $this->errorCode;
   }
-
+  
   /**
-   * @internal Add an error to the response. 
-   */
-  public function addError($index, $code, $message) {
-    array_push($this->errors, new ThreeScaleResponseError($index, $code, $message));
-  }
-}
-
-/**
- * Object containing detailed information about an error.
- */
-class ThreeScaleResponseError {
-  private $index;
-  private $code;
-  private $message;
-
-  public function __construct($index, $code, $message) {
-    $this->index = $index;
-    $this->code = $code;
-    $this->message = $message;
-  }
-
-  /**
-   * Index of the transaction that caused this error. This has meaning only if the error 
-   * was result of the ThreeScaleClient::report() call. Otherwise it's null.
+   * Human readable error message.
    *
-   * @return int
+   * @return string error message
    */
-  public function getIndex() {
-    return $this->index;
+  public function getErrorMessage() {
+    return $this->errorMessage;
   }
 
   /**
-   * System code of the error.
-   *
-   * @return string
+   * @internal Switch response to success state.
    */
-  public function getCode() {
-    return $this->code;
+  public function setSuccess() {
+    $this->errorCode = null;
+    $this->errorMessage = null;
   }
 
   /**
-   * Human readable description of the error.
-   *
-   * @return string
+   * @internal Switch response to error state and set error code and message.
    */
-  public function getMessage() {
-    return $this->message;
+  public function setError($message, $code = null) {
+    $this->errorCode = $code;
+    $this->errorMessage = $message;
   }
 }
 
