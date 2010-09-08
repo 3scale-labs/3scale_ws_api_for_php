@@ -1,6 +1,8 @@
 <?php
 
-if (getenv('TEST_3SCALE_PROVIDER_KEY') && getenv('TEST_3SCALE_USER_KEYS')) {
+if (getenv('TEST_3SCALE_PROVIDER_KEY') && 
+    getenv('TEST_3SCALE_APP_IDS')      &&
+    getenv('TEST_3SCALE_APP_KEYS')) {
   error_reporting(E_ALL & ~E_DEPRECATED);
   require_once('simpletest/unit_tester.php');
   require_once('simpletest/autorun.php');
@@ -13,29 +15,36 @@ if (getenv('TEST_3SCALE_PROVIDER_KEY') && getenv('TEST_3SCALE_USER_KEYS')) {
   class RemoteTest extends UnitTestCase {
     function setUp() {
       $this->providerKey = getenv('TEST_3SCALE_PROVIDER_KEY');
-      $this->userKeys = explode(',', getenv('TEST_3SCALE_USER_KEYS'));
-      $this->userKeys = array_map('trim', $this->userKeys);
+
+      $this->appIds = explode(',', getenv('TEST_3SCALE_APP_IDS'));
+      $this->appIds = array_map('trim', $this->appIds);
+      
+      $this->appKeys = explode(',', getenv('TEST_3SCALE_APP_KEYS'));
+      $this->appKeys = array_map('trim', $this->appKeys);
 
       $this->client = new ThreeScaleClient($this->providerKey);
     }
 
     function testSuccessfulAuthorize() {
-      $response = $this->client->authorize($this->userKeys[0]);
-      $this->assertTrue($response->isSuccess());
+      foreach($this->appKeys as $appKey) {
+        $response = $this->client->authorize($this->appIds[0], $appKey);
+        $this->assertTrue($response->isSuccess());
+      }
     }
 
     function testFailedAuthorize() {
-      $response = $this->client->authorize('invalid-user-key');
+      $response = $this->client->authorize('boo');
       $this->assertFalse($response->isSuccess());
 
-      $this->assertEqual('user_key_invalid', $response->getErrorCode());
-      $this->assertEqual('user key "invalid-user-key" is invalid', $response->getErrorMessage());
+      $this->assertEqual('application_not_found', $response->getErrorCode());
+      $this->assertEqual('application with id="boo" was not found', 
+                         $response->getErrorMessage());
     }
 
     function testSuccessfulReport() {
       $transactions = array();
-      foreach ($this->userKeys as $userKey) {
-        array_push($transactions, array('user_key' => $userKey, 'usage' => array('hits' => 1)));
+      foreach ($this->appIds as $appId) {
+        array_push($transactions, array('app_id' => $appId, 'usage' => array('hits' => 1)));
       }
 
       $response = $this->client->report($transactions);
@@ -44,20 +53,23 @@ if (getenv('TEST_3SCALE_PROVIDER_KEY') && getenv('TEST_3SCALE_USER_KEYS')) {
 
     function testFailedReport() {
       $transactions = array();
-      foreach ($this->userKeys as $userKey) {
-        array_push($transactions, array('user_key' => $userKey, 'usage' => array('hits' => 1)));
+      foreach ($this->appIds as $appId) {
+        array_push($transactions, array('app_id' => $appId, 'usage' => array('hits' => 1)));
       }
 
-      $client = new ThreeScaleClient('invalid-provider-key');
+      $client = new ThreeScaleClient('boo');
       $response = $client->report($transactions);
       
       $this->assertFalse($response->isSuccess());
       $this->assertEqual('provider_key_invalid', $response->getErrorCode());
-      $this->assertEqual('provider key "invalid-provider-key" is invalid', 
+      $this->assertEqual('provider key "boo" is invalid', 
                          $response->getErrorMessage());
     }
   }
 
 } else {
-  echo "You need to set enviroment variables TEST_3SCALE_PROVIDER_KEY and TEST_3SCALE_USER_KEYS to run this remote test.\n";
+  echo "This test executes real requests against 3scale backend server. It needs to know provider key, application ids and application keys to use in the requests. You have to set these environment variables:\n";
+  echo " * TEST_3SCALE_PROVIDER_KEY - a provider key.\n";
+  echo " * TEST_3SCALE_APP_IDS      - list of application ids, separated by commas.\n";
+  echo " * TEST_3SCALE_APP_KEYS     - list of application keys corresponding to the FIRST id in the TEST_3SCALE_APP_IDS list. Also separated by commas.\n";
 }

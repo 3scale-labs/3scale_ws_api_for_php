@@ -23,7 +23,7 @@ class ThreeScaleAuthorizeResponse extends ThreeScaleResponse {
   }
 
   /**
-   * Get name of the plan the user is signed up to.
+   * Get name of the plan the application is signed up to.
    *
    * @return string
    */
@@ -54,8 +54,8 @@ class ThreeScaleAuthorizeResponse extends ThreeScaleResponse {
 }
 
 /**
- * Object with information about user's usage and how close he/she is to meeting his/her
- * limits.
+ * Object with information about application's usage and how close it is to meeting 
+ * the limits.
  *
  * One object of this class always corresponds to one usage limit defined on the plan.
  */
@@ -139,7 +139,7 @@ class ThreeScaleAuthorizeResponseUsageReport {
   }
 
   /**
-   * The value the user alredy spent in the current period of the usage limit.
+   * The value the application alredy spent in the current period of the usage limit.
    *
    * @return int
    */

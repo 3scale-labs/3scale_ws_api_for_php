@@ -22,10 +22,10 @@ Because the object is stateless, you can create just one and store it globally.
 
 ### Authorize
 
-To authorize a particular user, call the `authorize` method passing it the user key
-identifiing the user:
+To authorize a particular application, call the `authorize` method passing it the 
+application id and optionally the application key:
 
-    $response = $client->authorize("the user key");
+    $response = $client->authorize("the app id", "the app key");
 
 Then call the `isSuccess()` method on the returned object to see if the authorization was
 successful:
@@ -33,13 +33,13 @@ successful:
     if ($response->isSuccess()) {
       // All fine, proceeed.
     } else {
-      // Something's wrong with this user.
+      // Something's wrong with this app.
     }
 
-If both provider and user keys are valid, the response object contains additional information 
-about the status of the user:
+If both provider and app id are valid, the response object contains additional information 
+about the status of the application:
 
-    // Returns the name of the plan the user is signed up to.
+    // Returns the name of the plan the application is signed up to.
     $response->getPlan()
 
 If the plan has defined usage limits, the response contains details about the usage broken
@@ -57,7 +57,7 @@ down by the metrics and usage limit periods.
     $usageReport->getPeriodStart()  // 1272405600 (Unix timestamp for April 28, 2010, 00:00:00)
     $usageReport->getPeriodEnd()    // 1272492000 (Unix timestamp for April 29, 2010, 00:00:00)
 
-    // The current value the user already consumed in the period
+    // The current value the application already consumed in the period
     $usageReport->getCurrentValue() // 8032
 
     // The maximal value allowed by the limit in the period
@@ -77,14 +77,14 @@ If the authorization failed, the `getErrorCode()` returns system error code and
 To report usage, use the `report` method. You can report multiple transaction at the same time:
 
     $response = $client->report(array(
-      array('user_key' => "first user's key",  'usage' => array('hits' => 1)),
-      array('user_key' => "second user's key", 'usage' => array('hits' => 1))));
+      array('app_id' => "first app's id",  'usage' => array('hits' => 1)),
+      array('app_id' => "second app's id", 'usage' => array('hits' => 1))));
 
-The `"user_key"` and `"usage"` parameters are required. Additionaly, you can specify a timestamp
+The `"app_id"` and `"usage"` parameters are required. Additionaly, you can specify a timestamp
 of the transaction:
 
     $response = $client->report(array(
-      array('user_key'  => "user's key",
+      array('app_id'    => "app's id",
             'usage'     => array('hits' => 1),
             'timestamp' => mktime(12, 36, 0, 4, 28, 2010))));
 

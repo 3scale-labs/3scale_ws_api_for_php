@@ -62,12 +62,13 @@ class ThreeScaleClient {
   }
 
   /**
-   * Authorize an user.
+   * Authorize an application.
    *
-   * @param $userKey user's API key.
+   * @param $appId  application id.
+   * @param $appKey secret application key.
    *
    * @return ThreeScaleResponse object containing additional authorization information.
-   * If both provider key and user key are valid, the returned object is actually
+   * If both provider key and application id are valid, the returned object is actually
    * @see ThreeScaleAuthorizeResponse (which is derived from ThreeScaleResponse) and
    * contains additional information about the usage status.
    *
@@ -80,7 +81,7 @@ class ThreeScaleClient {
    *
    * <code>
    *   <?php
-   *   $response = $client->authorize('foo');
+   *   $response = $client->authorize('app-id', 'app-key');
    *
    *   if ($response->isSuccess()) {
    *     // ok.
@@ -90,9 +91,13 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-  public function authorize($userKey) {  
+  public function authorize($appId, $appKey = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
-    $params = array('provider_key' => $this->getProviderKey(), 'user_key' => $userKey);
+    $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
+
+    if ($appKey) {
+      $params['app_key'] = $appKey;
+    }
 
     $httpResponse = $this->httpClient->get($url, $params);
 
@@ -110,7 +115,7 @@ class ThreeScaleClient {
    *
    * Each transaction is an array with these elements:
    *
-   * "user_key"  - API key of the user to report the transaction for.
+   * "app_id"    - ID of the application to report the transaction for.
    *               This parameter is required.
    *
    * "usage"     - Array of usage values. The keys are metric names and values
@@ -137,12 +142,12 @@ class ThreeScaleClient {
    *
    * <code>
    *   <?php
-   *   // Report two transactions of two users.
-   *   $client->report(array(array('user_key' => 'foo', 'usage' => array('hits' => 1)),
-   *                         array('user_key' => 'bar', 'usage' => array('hits' => 1))));
+   *   // Report two transactions of two applications.
+   *   $client->report(array(array('app_id' => 'foo', 'usage' => array('hits' => 1)),
+   *                         array('app_id' => 'bar', 'usage' => array('hits' => 1))));
    *
    *   // Report one transaction with timestamp.
-   *   $client->report(array(array('user_key'  => 'foo',
+   *   $client->report(array(array('app_id'    => 'foo',
    *                               'timestamp' => mktime(15, 14, 00, 2, 27, 2010),
    *                               'usage'     => array('hits' => 1))));
    *   ?>
@@ -178,6 +183,7 @@ class ThreeScaleClient {
 
   private function buildAuthorizeResponse($body) {
     $response = new ThreeScaleAuthorizeResponse;
+
     $doc = new SimpleXMLElement($body);
 
     if ((string) $doc->authorized == 'true') {
@@ -188,13 +194,15 @@ class ThreeScaleClient {
 
     $response->setPlan((string) $doc->plan);
 
-    foreach ($doc->usage_reports->usage_report as $node) {
-      $response->addUsageReport()
-        ->setMetric(trim($node['metric']))
-        ->setPeriod(trim($node['period']))
-        ->setPeriodInterval((string) $node->period_start, (string) $node->period_end)
-        ->setCurrentValue((int) (string) $node->current_value)
-        ->setMaxValue((int) (string) $node->max_value);
+    if ($doc->usage_reports) {
+      foreach ($doc->usage_reports->usage_report as $node) {
+        $response->addUsageReport()
+          ->setMetric(trim($node['metric']))
+          ->setPeriod(trim($node['period']))
+          ->setPeriodInterval((string) $node->period_start, (string) $node->period_end)
+          ->setCurrentValue((int) (string) $node->current_value)
+          ->setMaxValue((int) (string) $node->max_value);
+      }
     }
 
     return $response;
