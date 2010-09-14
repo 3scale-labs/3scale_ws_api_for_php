@@ -1,11 +1,10 @@
 # Client for 3scale web service management system API #
 
-This library provides client for the 3scale web service management API.
+Please note: This version of the library targets the new API, which is currently in beta phase. Please contact 3scale support at support@3scale.net before you use it. You can also use older version (1.5.0) targeting the old API: http://github.com/3scale/3scale_ws_api_for_php/tree/v1.5.0.
 
 ## Installation
 
-Download the source code from github: http://github.com/3scale/3scale_ws_api_for_php and place
-it somewhere accessible from your project.
+Download the source code from github: http://github.com/3scale/3scale_ws_api_for_php and place it somewhere accessible from your project.
 
 ## Usage
 
