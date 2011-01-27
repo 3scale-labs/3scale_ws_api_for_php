@@ -255,11 +255,11 @@ class ThreeScaleClient {
   }
 
   private static function isHttpSuccess($httpResponse) {
-    return self::isHttpStatusCodeIn($httpResponse, 100, 299);
+    return (self::isHttpStatusCodeIn($httpResponse, 100, 299)) || ($httpResponse->headers['Status-Code'] == 409);
   }
 
   private static function isHttpClientError($httpResponse) {
-    return self::isHttpStatusCodeIn($httpResponse, 400, 499);
+    return self::isHttpStatusCodeIn($httpResponse, 400, 404);
   }
 
   private static function isHttpStatusCodeIn($httpResponse, $min, $max) {
