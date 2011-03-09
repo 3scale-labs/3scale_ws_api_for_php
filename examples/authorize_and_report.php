@@ -23,7 +23,7 @@ if ($response->isSuccess()) {
 	// All fine, proceeed & pull the usage reports
 	$usageReports = $response->getUsageReports();
 
-  echo "Success:"
+        echo "Success:";
 	echo "  Plan: " .          $response->getPlan();
 	echo "  Usage reports: " . var_export($usageReports, true);
 } else {
