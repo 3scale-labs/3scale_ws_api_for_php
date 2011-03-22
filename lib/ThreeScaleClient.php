@@ -154,18 +154,10 @@ class ThreeScaleClient {
      
     $httpResponse = $this->httpClient->get($url, $params);
 
-    if ($no_body) {
-
-        echo ">>" . curl_errno($this->httpClient->handle) . "\n";
-
-        return true;
-    }
-    else {
-      if (self::isHttpSuccess($httpResponse)) {
-        return $this->buildAuthorizeResponse($httpResponse->body);
-      } else {
-        return $this->processError($httpResponse);
-      }
+    if (self::isHttpSuccess($httpResponse)) {
+      return $this->buildAuthorizeResponse($httpResponse->body);
+    } else {
+      return $this->processError($httpResponse);
     }
     
   }
