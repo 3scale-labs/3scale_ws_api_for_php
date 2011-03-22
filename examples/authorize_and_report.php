@@ -30,7 +30,7 @@ if ($response->isSuccess()) {
 	// Something's wrong with this app.
 	echo "Error: " . $response->getErrorMessage();
 }
-	
+
 // Report some usages
 $response = $client->report(
 	array(

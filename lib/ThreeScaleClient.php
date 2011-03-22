@@ -108,6 +108,68 @@ class ThreeScaleClient {
     }
   }
 
+/**
+   * Authorize and report in a single shot.
+   *
+   * @param $appId  application id.
+   * @param $appKey secret application key.
+   * 
+   *
+   * @return ThreeScaleResponse object containing additional authorization information.
+   * If both provider key and application id are valid, the returned object is actually
+   * @see ThreeScaleAuthorizeResponse (which is derived from ThreeScaleResponse) and
+   * contains additional information about the usage status.
+   *
+   * @see ThreeScaleResponse
+   * @see ThreeScaleAuthorizeResponse
+   *
+   * @throws ThreeScaleServerError in case of unexpected internal server error
+   *
+   * Example:
+   *
+   * <code>
+   *   <?php
+   *   $response = $client->authorize('app-id', 'app-key');
+   *
+   *   if ($response->isSuccess()) {
+   *     // ok.
+   *   } else {
+   *     // something is wrong.
+   *   }
+   *   ?>
+   * </code>
+   */
+
+   public function authrep($appId, $appKey = null, $usage = null, $userId = null, $object = null, $no_body = null) {  
+    $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
+
+    $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
+   
+    if ($appKey) $params['app_key'] = $appKey;
+    if ($userId) $params['user_id'] = $userId;
+    if ($object) $params['object'] = $object;
+    if ($usage) $params['usage'] = $usage;
+    if ($no_body) $params['no_body'] = $no_body;
+    
+     
+    $httpResponse = $this->httpClient->get($url, $params);
+
+    if ($no_body) {
+
+        echo ">>" . curl_errno($this->httpClient->handle) . "\n";
+
+        return true;
+    }
+    else {
+      if (self::isHttpSuccess($httpResponse)) {
+        return $this->buildAuthorizeResponse($httpResponse->body);
+      } else {
+        return $this->processError($httpResponse);
+      }
+    }
+    
+  }
+
   /**
    * Report transaction(s).
    *
