@@ -162,6 +162,27 @@ class ThreeScaleClient {
     
   }
 
+  public function authrep_with_user_key($userKey, $usage = null, $userId = null, $object = null, $no_body = null) {  
+    $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
+
+    $params = array('provider_key' => $this->getProviderKey(), 'user_key' => $userKey);
+      
+    if ($userId) $params['user_id'] = $userId;
+    if ($object) $params['object'] = $object;
+    if ($usage) $params['usage'] = $usage;
+    if ($no_body) $params['no_body'] = $no_body;
+    
+     
+    $httpResponse = $this->httpClient->get($url, $params);
+
+    if (self::isHttpSuccess($httpResponse)) {
+      return $this->buildAuthorizeResponse($httpResponse->body);
+    } else {
+      return $this->processError($httpResponse);
+    }
+    
+  }
+
   /**
    * Report transaction(s).
    *
