@@ -323,7 +323,7 @@ class ThreeScaleClient {
         $new_value = urlencode($value);
       }
 
-      $result[urlencode($key)] = $new_value;
+      $result[$key] = $new_value;
     }
 
     return $result;
