@@ -320,7 +320,12 @@ class ThreeScaleClient {
       if (is_array($value)) {
         $new_value = self::urlencodeRecursive($value);
       } else {
-        $new_value = urlencode($value);
+        if($key == 'timestamp') {
+          $new_value = $value;
+        } 
+        else {
+          $new_value = urlencode($value);
+        }
       }
 
       $result[$key] = $new_value;
