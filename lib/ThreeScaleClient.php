@@ -108,6 +108,51 @@ class ThreeScaleClient {
     }
   }
 
+  /**
+   * Authorize an application.
+   *
+   * @param $userKey  user key.
+   *
+   * @return ThreeScaleResponse object containing additional authorization information.
+   * If both provider key and application id are valid, the returned object is actually
+   * @see ThreeScaleAuthorizeResponse (which is derived from ThreeScaleResponse) and
+   * contains additional information about the usage status.
+   *
+   * @see ThreeScaleResponse
+   * @see ThreeScaleAuthorizeResponse
+   *
+   * @throws ThreeScaleServerError in case of unexpected internal server error
+   *
+   * Example:
+   *
+   * <code>
+   *   <?php
+   *   $response = $client->authorize_with_user_key('user-key');
+   *
+   *   if ($response->isSuccess()) {
+   *     // ok.
+   *   } else {
+   *     // something is wrong.
+   *   }
+   *   ?>
+   * </code>
+   */
+
+  public function authorize_with_user_key($userKey) {  
+    $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
+    $params = array('provider_key' => $this->getProviderKey(), 'user_key' => $userKey);
+
+
+    $httpResponse = $this->httpClient->get($url, $params);
+
+    if (self::isHttpSuccess($httpResponse)) {
+      return $this->buildAuthorizeResponse($httpResponse->body);
+    } else {
+      return $this->processError($httpResponse);
+    }
+  }
+
+
 /**
    * Authorize and report in a single shot.
    *
