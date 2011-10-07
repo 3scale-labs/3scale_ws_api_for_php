@@ -262,14 +262,24 @@ class ThreeScaleClient {
    *
    * <code>
    *   <?php
-   *   // Report two transactions of two applications.
+   *   // Report two transactions of two applications with app_id
    *   $client->report(array(array('app_id' => 'foo', 'usage' => array('hits' => 1)),
    *                         array('app_id' => 'bar', 'usage' => array('hits' => 1))));
    *
-   *   // Report one transaction with timestamp.
+   *   // Report one transaction with timestamp with app_id
    *   $client->report(array(array('app_id'    => 'foo',
    *                               'timestamp' => mktime(15, 14, 00, 2, 27, 2010),
    *                               'usage'     => array('hits' => 1))));
+   *
+   *   // Report two transactions of two applications with user_key
+   *   $client->report(array(array('user_key' => 'foo', 'usage' => array('hits' => 1)),
+   *                         array('user_key' => 'bar', 'usage' => array('hits' => 1))));
+   *
+   *    // Report one transaction with timestamp and with user_key
+   *   $client->report(array(array('user_key'    => 'foo',
+   *                               'timestamp' => mktime(15, 14, 00, 2, 27, 2010),
+   *                               'usage'     => array('hits' => 1))));
+   *
    *   ?>
    * </code>                            
    */
