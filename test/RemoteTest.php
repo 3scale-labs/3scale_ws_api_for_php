@@ -4,8 +4,8 @@ if (getenv('TEST_3SCALE_PROVIDER_KEY') &&
     getenv('TEST_3SCALE_APP_IDS')      &&
     getenv('TEST_3SCALE_APP_KEYS')) {
   error_reporting(E_ALL & ~E_DEPRECATED);
-  require_once('simpletest/unit_tester.php');
-  require_once('simpletest/autorun.php');
+  require_once(dirname(__FILE__) . '/../lib/simpletest/unit_tester.php');
+  require_once(dirname(__FILE__) . '/../lib/simpletest/autorun.php');
   error_reporting(E_ALL | E_NOTICE);
 
   date_default_timezone_set('Europe/Madrid');
