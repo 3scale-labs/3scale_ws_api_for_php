@@ -165,11 +165,11 @@ class ThreeScaleClientTest extends UnitTestCase {
             '0' => array(
               'app_id'    => 'foo',
               'usage'     => array('hits' => '1'),
-              'timestamp' => urlencode('2010-04-27 15:42:17 +02:00')),
+              'timestamp' => '2010-04-27 15:42:17 +02:00'),
             '1' => array(
               'app_id'    => 'bar',
               'usage'     => array('hits' => '1'),
-              'timestamp' => urlencode('2010-04-27 15:55:12 +02:00'))))));
+              'timestamp' => '2010-04-27 15:55:12 +02:00')))));
        
     $this->httpClient->setReturnValue('post', new StubResponse(200));
 
