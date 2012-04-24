@@ -66,6 +66,7 @@ class ThreeScaleClient {
    *
    * @param $appId  application id.
    * @param $appKey secret application key.
+   * @param $serviceId service id, only required in the case of multiple services
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -82,6 +83,7 @@ class ThreeScaleClient {
    * <code>
    *   <?php
    *   $response = $client->authorize('app-id', 'app-key');
+   *   // or $response = $client->authorize('app-id', 'app-key', 'service_id');
    *
    *   if ($response->isSuccess()) {
    *     // ok.
@@ -91,14 +93,18 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-  public function authorize($appId, $appKey = null) {  
+  public function authorize($appId, $appKey = null, $serviceId = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
     $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
 
     if ($appKey) {
       $params['app_key'] = $appKey;
     }
-
+    
+    if ($serviceId) {
+      $params['service_id'] = $serviceId;
+    }
+    
     $httpResponse = $this->httpClient->get($url, $params);
 
     if (self::isHttpSuccess($httpResponse)) {
@@ -112,6 +118,7 @@ class ThreeScaleClient {
    * Authorize an application.
    *
    * @param $userKey  user key.
+   * @param $serviceId service id, only required in the case of multiple services
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -128,6 +135,7 @@ class ThreeScaleClient {
    * <code>
    *   <?php
    *   $response = $client->authorize_with_user_key('user-key');
+   *   // or $response = $client->authorize_with_user_key('user-key','service_id');
    *
    *   if ($response->isSuccess()) {
    *     // ok.
@@ -138,10 +146,13 @@ class ThreeScaleClient {
    * </code>
    */
 
-  public function authorize_with_user_key($userKey) {  
+  public function authorize_with_user_key($userKey, $serviceId = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
     $params = array('provider_key' => $this->getProviderKey(), 'user_key' => $userKey);
-
+    
+    if ($serviceId) {
+      $params['service_id'] = $serviceId;
+    }
 
     $httpResponse = $this->httpClient->get($url, $params);
 
@@ -158,7 +169,6 @@ class ThreeScaleClient {
    *
    * @param $appId  application id.
    * @param $appKey secret application key.
-   * 
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -175,6 +185,7 @@ class ThreeScaleClient {
    * <code>
    *   <?php
    *   $response = $client->authorize('app-id', 'app-key');
+   *   // or $response = $client->authorize('app-id', 'app-key','service_id');
    *
    *   if ($response->isSuccess()) {
    *     // ok.
@@ -185,7 +196,7 @@ class ThreeScaleClient {
    * </code>
    */
 
-   public function authrep($appId, $appKey = null, $usage = null, $userId = null, $object = null, $no_body = null) {  
+   public function authrep($appId, $appKey = null, $usage = null, $userId = null, $object = null, $no_body = null, $serviceId = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
 
     $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
@@ -195,7 +206,7 @@ class ThreeScaleClient {
     if ($object) $params['object'] = $object;
     if ($usage) $params['usage'] = $usage;
     if ($no_body) $params['no_body'] = $no_body;
-    
+    if ($serviceId) $params['service_id'] = $serviceId;
      
     $httpResponse = $this->httpClient->get($url, $params);
 
@@ -207,7 +218,7 @@ class ThreeScaleClient {
     
   }
 
-  public function authrep_with_user_key($userKey, $usage = null, $userId = null, $object = null, $no_body = null) {  
+  public function authrep_with_user_key($userKey, $usage = null, $userId = null, $object = null, $no_body = null, $serviceId = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
 
     $params = array('provider_key' => $this->getProviderKey(), 'user_key' => $userKey);
@@ -216,6 +227,7 @@ class ThreeScaleClient {
     if ($object) $params['object'] = $object;
     if ($usage) $params['usage'] = $usage;
     if ($no_body) $params['no_body'] = $no_body;
+    if ($serviceId) $params['service_id'] = $serviceId;
     
      
     $httpResponse = $this->httpClient->get($url, $params);
@@ -283,7 +295,7 @@ class ThreeScaleClient {
    *   ?>
    * </code>                            
    */
-  public function report($transactions) {
+  public function report($transactions, $serviceId = null) {
     if (empty($transactions)) {
       throw new InvalidArgumentException('no transactions to report');
     }
@@ -292,6 +304,7 @@ class ThreeScaleClient {
 
     $params = array();
     $params['provider_key'] = urlencode($this->getProviderKey());
+    if ($serviceId) $params['service_id'] = urleconde($serviceId);
     $params['transactions'] = $this->encodeTransactions($transactions);
     
     $httpResponse = $this->httpClient->post($url, $params);
