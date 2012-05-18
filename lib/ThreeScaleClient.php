@@ -113,6 +113,55 @@ class ThreeScaleClient {
       return $this->processError($httpResponse);
     }
   }
+  
+  /**
+   * Authorize an application.
+   *
+   * @param $appId  application id or client id (they are equivalent)
+   * @param $serviceId service id, only required in the case of multiple services
+   *
+   * @return ThreeScaleResponse object containing additional authorization information.
+   * If both provider key and application id are valid, the returned object is actually
+   * @see ThreeScaleAuthorizeResponse (which is derived from ThreeScaleResponse) and
+   * contains additional information about the usage status.
+   *
+   * @see ThreeScaleResponse
+   * @see ThreeScaleAuthorizeResponse
+   *
+   * @throws ThreeScaleServerError in case of unexpected internal server error
+   *
+   * Example:
+   *
+   * <code>
+   *   <?php
+   *   $response = $client->oauth_authorize('app_id');
+   *   // or $response = $client->oauth_authorize('app_id', 'service_id');
+   *
+   *   if ($response->isSuccess()) {
+   *     // ok.
+   *   } else {
+   *     // something is wrong.
+   *   }
+   *   ?>
+   * </code>
+   */
+  public function oauth_authorize($appId, $serviceId = null) {  
+    $url = "http://" . $this->getHost() . "/transactions/oauth_authorize.xml";
+    $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
+    
+    if ($serviceId) {
+      $params['service_id'] = $serviceId;
+    }
+    
+    $httpResponse = $this->httpClient->get($url, $params);
+
+    if (self::isHttpSuccess($httpResponse)) {
+      return $this->buildAuthorizeResponse($httpResponse->body);
+    } else {
+      return $this->processError($httpResponse);
+    }
+  }
+  
 
   /**
    * Authorize an application.
