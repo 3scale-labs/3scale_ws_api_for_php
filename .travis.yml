@@ -1,0 +1,10 @@
+language: php
+php:
+  - 5.2
+  - 5.3
+  - 5.4
+before_script:
+ - export TEST_3SCALE_APP_KEYS=3e05c797ef193fee452b1ddf19defa74
+ - export TEST_3SCALE_APP_IDS=75165984
+ - export TEST_3SCALE_PROVIDER_KEY=05273bcb282d1d4faafffeb01e224db0
+script: php test/all.php
