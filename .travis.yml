@@ -8,3 +8,4 @@ before_script:
  - export TEST_3SCALE_APP_IDS=75165984
  - export TEST_3SCALE_PROVIDER_KEY=05273bcb282d1d4faafffeb01e224db0
 script: php test/all.php
+install: "" # no dependencies, just libxml and it has to be installed by hand
