@@ -1,4 +1,5 @@
-# Client for 3scale web service management system API #
+# Client for 3scale web service management system API [![Build Status](https://secure.travis-ci.org/3scale/3scale_ws_api_for_php.png?branch=master)](http://travis-ci.org/3scale/3scale_ws_api_for_php)
+3scale integration plugin for PHP applications. 3scale is an API Infrastructure service which handles API Keys, Rate Limiting, Analytics, Billing Payments and Developer Management. Includes a configurable API dashboard and developer portal CMS. More product stuff at http://www.3scale.net/, support information at http://support.3scale.net/.
 
 ## Installation
 
