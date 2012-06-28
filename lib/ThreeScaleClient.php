@@ -3,7 +3,7 @@
 /**
  * Defines ThreeScaleClient class.
  *
- * @copyright 2010 3scale networks S.L.
+ * @copyright 2010 threescale networks S.L.
  */
 
 require_once(dirname(__FILE__) . '/curl/curl.php');
@@ -13,13 +13,13 @@ require_once(dirname(__FILE__) . '/ThreeScaleAuthorizeResponse.php');
 
 
 /**
- * Wrapper for 3scale web service management system API.
+ * Wrapper for threescale web service management system API.
  *
  * Objects of this class are stateless and can be shared through multiple
  * transactions and by multiple clients.
  */
 class ThreeScaleClient {
-  const DEFAULT_HOST = 'su1.3scale.net';
+  const DEFAULT_HOST = 'su1.threescale.net';
 
   private $providerKey;
   private $host;
@@ -29,7 +29,7 @@ class ThreeScaleClient {
    * Create a ThreeScaleClient instance.
    *
    * @param $providerKey Unique API key that identifies the provider.
-   * @param $host Hostname of 3scale backend server. Usually there is no reason to use anything
+   * @param $host Hostname of threescale backend server. Usually there is no reason to use anything
    *              else than the default value.
    * @param $httpClient Object for handling HTTP requests. Default is CURL. Don't change it
    *                    unless you know what you are doing.
@@ -54,7 +54,7 @@ class ThreeScaleClient {
   }
 
   /**
-   * Get hostname of 3scale backend server.
+   * Get hostname of threescale backend server.
    * @return string
    */
   public function getHost() {
@@ -93,7 +93,7 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-  public function authorize($appId, $appKey = null, $serviceId = null) {  
+  public function authorize($appId, $appKey = null, $usage = null, $serviceId = null) {
     $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
     $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
 
@@ -103,6 +103,10 @@ class ThreeScaleClient {
     
     if ($serviceId) {
       $params['service_id'] = $serviceId;
+    }
+
+    if ($usage) {
+      $params['usage'] = $usage;
     }
     
     $httpResponse = $this->httpClient->get($url, $params);
@@ -118,6 +122,7 @@ class ThreeScaleClient {
    * Authorize an application.
    *
    * @param $appId  application id or client id (they are equivalent)
+   * @param $usage usage
    * @param $serviceId service id, only required in the case of multiple services
    *
    * @return ThreeScaleResponse object containing additional authorization information.
@@ -145,12 +150,15 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-  public function oauth_authorize($appId, $serviceId = null) {  
+  public function oauth_authorize($appId, $usage = null, $serviceId = null) {
     $url = "http://" . $this->getHost() . "/transactions/oauth_authorize.xml";
     $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
     
     if ($serviceId) {
       $params['service_id'] = $serviceId;
+    }
+    if ($usage) {
+      $params['usage'] = $usage;
     }
     
     $httpResponse = $this->httpClient->get($url, $params);
@@ -195,12 +203,16 @@ class ThreeScaleClient {
    * </code>
    */
 
-  public function authorize_with_user_key($userKey, $serviceId = null) {  
+  public function authorize_with_user_key($userKey, $usage = null, $serviceId = null) {
     $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
     $params = array('provider_key' => $this->getProviderKey(), 'user_key' => $userKey);
     
     if ($serviceId) {
       $params['service_id'] = $serviceId;
+    }
+
+    if ($usage) {
+      $params['usage'] = $usage;
     }
 
     $httpResponse = $this->httpClient->get($url, $params);
@@ -411,6 +423,7 @@ class ThreeScaleClient {
   private function encodeTransactions($transactions) {
     $encoded_transactions = array();
 
+    fb($transactions, "TRANSACTIONS");
     foreach($transactions as $index => $transaction) {
       if (array_key_exists('timestamp', $transaction)) {
         $transaction['timestamp'] = self::encodeTimestamp($transaction['timestamp']);
@@ -480,7 +493,7 @@ class ThreeScaleClient {
 class ThreeScaleException extends RuntimeException {}
 
 // This exceptions is thrown when there is an unexpected internal server error
-// on the 3scale server.
+// on the threescale server.
 class ThreeScaleServerError extends ThreeScaleException {
   public function __construct($response = null) {
     parent::__construct('server error');
