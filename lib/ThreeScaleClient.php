@@ -3,7 +3,7 @@
 /**
  * Defines ThreeScaleClient class.
  *
- * @copyright 2010 threescale networks S.L.
+ * @copyright 2010 3scale networks S.L.
  */
 
 require_once(dirname(__FILE__) . '/curl/curl.php');
