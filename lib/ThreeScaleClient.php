@@ -19,7 +19,7 @@ require_once(dirname(__FILE__) . '/ThreeScaleAuthorizeResponse.php');
  * transactions and by multiple clients.
  */
 class ThreeScaleClient {
-  const DEFAULT_HOST = 'su1.threescale.net';
+  const DEFAULT_HOST = 'su1.3scale.net';
 
   private $providerKey;
   private $host;
@@ -150,7 +150,7 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-  public function oauth_authorize($appId, $usage = null, $serviceId = null) {
+  public function oauth_authorize($appId, $serviceId = null, $usage = null) {
     $url = "http://" . $this->getHost() . "/transactions/oauth_authorize.xml";
     $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
     
@@ -203,10 +203,10 @@ class ThreeScaleClient {
    * </code>
    */
 
-  public function authorize_with_user_key($userKey, $usage = null, $serviceId = null) {
+  public function authorize_with_user_key($userKey, $serviceId = null, $usage = null) {
     $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
     $params = array('provider_key' => $this->getProviderKey(), 'user_key' => $userKey);
-    
+
     if ($serviceId) {
       $params['service_id'] = $serviceId;
     }
@@ -423,7 +423,6 @@ class ThreeScaleClient {
   private function encodeTransactions($transactions) {
     $encoded_transactions = array();
 
-    fb($transactions, "TRANSACTIONS");
     foreach($transactions as $index => $transaction) {
       if (array_key_exists('timestamp', $transaction)) {
         $transaction['timestamp'] = self::encodeTimestamp($transaction['timestamp']);
