@@ -28,10 +28,10 @@ class ThreeScaleClient {
   /**
    * Create a ThreeScaleClient instance.
    *
-   * @param $providerKey Unique API key that identifies the provider.
-   * @param $host Hostname of 3scale backend server. Usually there is no reason to use anything
+   * @param $providerKey String Unique API key that identifies the provider.
+   * @param $host String Hostname of 3scale backend server. Usually there is no reason to use anything
    *              else than the default value.
-   * @param $httpClient Object for handling HTTP requests. Default is CURL. Don't change it
+   * @param $httpClient Object Object for handling HTTP requests. Default is CURL. Don't change it
    *                    unless you know what you are doing.
    */
   public function __construct($providerKey, $host = self::DEFAULT_HOST, $httpClient = null) {
