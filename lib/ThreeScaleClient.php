@@ -353,7 +353,7 @@ class ThreeScaleClient {
 
     $params = array();
     $params['provider_key'] = urlencode($this->getProviderKey());
-    if ($serviceId) $params['service_id'] = urleconde($serviceId);
+    if ($serviceId) $params['service_id'] = urlencode($serviceId);
     $params['transactions'] = $this->encodeTransactions($transactions);
     
     $httpResponse = $this->httpClient->post($url, $params);
