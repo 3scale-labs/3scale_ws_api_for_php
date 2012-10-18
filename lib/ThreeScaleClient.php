@@ -13,7 +13,7 @@ require_once(dirname(__FILE__) . '/ThreeScaleAuthorizeResponse.php');
 
 
 /**
- * Wrapper for threescale web service management system API.
+ * Wrapper for 3scale web service management system API.
  *
  * Objects of this class are stateless and can be shared through multiple
  * transactions and by multiple clients.
@@ -54,7 +54,7 @@ class ThreeScaleClient {
   }
 
   /**
-   * Get hostname of threescale backend server.
+   * Get hostname of 3scale backend server.
    * @return string
    */
   public function getHost() {
@@ -492,7 +492,7 @@ class ThreeScaleClient {
 class ThreeScaleException extends RuntimeException {}
 
 // This exceptions is thrown when there is an unexpected internal server error
-// on the threescale server.
+// on the 3scale server.
 class ThreeScaleServerError extends ThreeScaleException {
   public function __construct($response = null) {
     parent::__construct('server error');
