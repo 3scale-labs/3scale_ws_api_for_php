@@ -93,7 +93,7 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-  public function authorize($appId, $appKey = null, $usage = null, $serviceId = null) {
+  public function authorize($appId, $appKey = null, $serviceId = null, $usage = null) {
     $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
     $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
 
