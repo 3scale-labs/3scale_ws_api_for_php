@@ -110,6 +110,10 @@ human readable error description:
     $response->getErrorCode()    // "provider_key_invalid"
     $response->getErrorMessage() // "provider key \"foo\" is invalid"
 
+## Composer integration
+
+If you are interested in integrating the plugin with [Composer](http://getcomposer.org/) please head over to [the packagist](https://packagist.org/packages/tdaws/3scale_ws_api_for_php). This is kindly maintained by [daws.ca](http://daws.ca) tech team.
+
 ## Legal
 
 Copyright (c) 2010 3scale networks S.L., released under the MIT license.
