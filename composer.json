@@ -1,0 +1,23 @@
+{
+    "name": "3scale/3scale_ws_api_for_php",
+    "description": "Client for 3scale web service management system API",
+    "keywords": ["3scale", "ThreeScale", "api", "management"],
+    "type": "library",
+    "homepage" : "https://support.3scale.net/libraries",
+    "support": {
+      "email": "support@3scale.net",
+      "issues": "https://github.com/3scale/3scale_ws_api_for_php/issues",
+      "source": "https://github.com/3scale/3scale_ws_api_for_php"
+    },
+    "require": {
+        "php": ">=5.3"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-0": {
+            "ThreeScaleClient": "lib/" ,
+            "ThreeScaleResponse": "lib/" ,
+            "3ScaleClient": "lib/"
+        }
+    }
+}
