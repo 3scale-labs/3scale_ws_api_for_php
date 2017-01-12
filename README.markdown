@@ -18,12 +18,16 @@ Then, create an instance of the client, giving it your provider API key:
 
 Because the object is stateless, you can create just one and store it globally.
 
+**NOTE: From November 2016 `service_id` is mandatory.**
+
 ### Authorize
 
 To authorize a particular application, call the `authorize` method passing it the 
 application id and optionally the application key:
 
     $response = $client->authorize("the app id", "the app key");
+or 
+    $response = $client->authorize("the app id", "the app key", "the service id");
 
 Then call the `isSuccess()` method on the returned object to see if the authorization was
 successful:
@@ -34,14 +38,12 @@ successful:
       // Something's wrong with this app.
     }
 
-If both provider and app id are valid, the response object contains additional information 
-about the status of the application:
+If both provider and app id are valid, the response object contains additional information about the status of the application:
 
     // Returns the name of the plan the application is signed up to.
     $response->getPlan()
 
-If the plan has defined usage limits, the response contains details about the usage broken
-down by the metrics and usage limit periods.
+If the plan has defined usage limits, the response contains details about the usage broken down by the metrics and usage limit periods.
 
     // The usageReports array contains one element per each usage limit defined on the plan.
     $usageReports = $response->getUsageReports();
@@ -64,8 +66,7 @@ down by the metrics and usage limit periods.
     // If the limit is exceeded, this will be true, otherwise false:
     $usageReport->isExceeded()      // false
 
-If the authorization failed, the `getErrorCode()` returns system error code and 
-`getErrorMessage()` human readable error description:
+If the authorization failed, the `getErrorCode()` returns system error code and `getErrorMessage()` human readable error description:
  
     $response->getErrorCode()       // "usage_limits_exceeded"
     $response->getErrorMessage()    // "Usage limits are exceeded"
@@ -76,7 +77,7 @@ To report usage, use the `report` method. You can report multiple transaction at
 
     $response = $client->report(array(
       array('app_id' => "first app's id",  'usage' => array('hits' => 1)),
-      array('app_id' => "second app's id", 'usage' => array('hits' => 1))));
+      array('app_id' => "second app's id", 'usage' => array('hits' => 1))), "service id");
 
 The `"app_id"` and `"usage"` parameters are required. Additionaly, you can specify a timestamp
 of the transaction:
