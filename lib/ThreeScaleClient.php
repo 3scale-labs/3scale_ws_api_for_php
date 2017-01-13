@@ -66,7 +66,7 @@ class ThreeScaleClient {
    *
    * @param $appId  application id.
    * @param $appKey secret application key.
-   * @param $serviceId service id, only required in the case of multiple services
+   * @param $serviceId service id required (from November 2016)
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -123,7 +123,7 @@ class ThreeScaleClient {
    *
    * @param $appId  application id or client id (they are equivalent)
    * @param $usage usage
-   * @param $serviceId service id, only required in the case of multiple services
+   * @param $serviceId service id, required (from November 2016)
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -175,7 +175,7 @@ class ThreeScaleClient {
    * Authorize an application.
    *
    * @param $userKey  user key.
-   * @param $serviceId service id, only required in the case of multiple services
+   * @param $serviceId service id, required (from November 2016)
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
