@@ -1,5 +1,10 @@
-# Client for 3scale web service management system API [![Build Status](https://secure.travis-ci.org/3scale/3scale_ws_api_for_php.png?branch=master)](http://travis-ci.org/3scale/3scale_ws_api_for_php)
+# Client for 3scale Web Service Management API [![Build Status](https://secure.travis-ci.org/3scale/3scale_ws_api_for_php.png?branch=master)](http://travis-ci.org/3scale/3scale_ws_api_for_php)
 3scale integration plugin for PHP applications. 3scale is an API Infrastructure service which handles API Keys, Rate Limiting, Analytics, Billing Payments and Developer Management. Includes a configurable API dashboard and developer portal CMS. More product stuff at http://www.3scale.net/, support information at http://support.3scale.net/.
+
+### Tutorials
+* Plugin Setup: https://support.3scale.net/docs/deployment-options/plugin-setup
+* Rate Limiting: https://support.3scale.net/docs/access-control/rate-limits
+* Analytics Setup: https://support.3scale.net/quickstarts/3scale-api-analytics
 
 ## Installation
 
@@ -12,9 +17,16 @@ include path):
 
     require_once('lib/ThreeScaleClient.php')
 
-Then, create an instance of the client, giving it your provider API key:
+Then create an instance of the client
+```
+$client = new ThreeScaleClient("your_service_token", true);
+```
 
-    $client = new ThreeScaleClient("your provider key");
+> NOTE: unless you specify ```(your_service_token", true)``` you will be expected to specify
+a `provider_key` parameter, which is deprecated in favor of Service Tokens:
+```
+$client = new ThreeScaleClient("your provider key");
+```
 
 Because the object is stateless, you can create just one and store it globally.
 
@@ -23,11 +35,9 @@ Because the object is stateless, you can create just one and store it globally.
 ### Authorize
 
 To authorize a particular application, call the `authorize` method passing it the 
-application id and optionally the application key:
+`application id` and `service id` and optionally the application key:
 
-    $response = $client->authorize("the app id", "the app key");
-or 
-    $response = $client->authorize("the app id", "the app key", "the service id");
+    $response = $client->authorize("the app id", "the app key", "service id");
 
 Then call the `isSuccess()` method on the returned object to see if the authorization was
 successful:
@@ -76,16 +86,16 @@ If the authorization failed, the `getErrorCode()` returns system error code and 
 To report usage, use the `report` method. You can report multiple transaction at the same time:
 
     $response = $client->report(array(
-      array('app_id' => "first app's id",  'usage' => array('hits' => 1)),
+      array('app_id' => "first app's id",'usage' => array('hits' => 1)),
       array('app_id' => "second app's id", 'usage' => array('hits' => 1))), "service id");
 
-The `"app_id"` and `"usage"` parameters are required. Additionaly, you can specify a timestamp
+The `"app_id"`,  `"usage"` parameters are required alongiwth `service id`. Additionaly, you can specify a timestamp
 of the transaction:
 
     $response = $client->report(array(
       array('app_id'    => "app's id",
             'usage'     => array('hits' => 1),
-            'timestamp' => mktime(12, 36, 0, 4, 28, 2010))));
+            'timestamp' => mktime(12, 36, 0, 4, 28, 2010, "service id"))));
 
 The timestamp can be either an unix timestamp (as integer) or a string. The string has to be in a
 format parseable by the [strtotime](http://php.net/manual/en/function.strtotime.php) function.
@@ -118,6 +128,15 @@ If you are interested in integrating the plugin with:
 * [Composer](http://getcomposer.org/) check [the packagist](https://packagist.org/packages/tdaws/3scale_ws_api_for_php). This is kindly maintained by [daws.ca](http://daws.ca) tech team.
 
 * [Symphony2](http://symfony.com/) check [tonivdv's 3scaleBundle](https://github.com/tonivdv/3scaleBundle). This is kindly maintained by [Adlogix](http://www.adlogix.eu) tech team.
+
+## To Test
+
+To run tests: `php test/all.php`. Please note that you will first need to set the following environment variables using your own 3scale keys:
+    
+ - TEST_3SCALE_PROVIDER_KEY
+ - TEST_3SCALE_APP_IDS
+ - TEST_3SCALE_APP_KEYS
+ - TEST_3SCALE_SERVICE_ID
 
 ## Legal
 
