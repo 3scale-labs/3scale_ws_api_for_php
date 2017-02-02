@@ -29,9 +29,10 @@ class ThreeScaleClient {
   /**
    * Create a ThreeScaleClient instance.
    *
-   * @param $providerKey String Unique API key that identifies the provider.
+   * @param $providerKeyOrServiceToken Provider Key or Service Token.
    * @param $host String Hostname of 3scale backend server. Usually there is no reason to use anything
    *              else than the default value.
+   * @param $isServiceToken Flag for service token. If value is false then provider key flow else service token flow.
    * @param $httpClient Object Object for handling HTTP requests. Default is CURL. Don't change it
    *                    unless you know what you are doing.
    */
@@ -76,11 +77,11 @@ class ThreeScaleClient {
   }
 
   /**
-   * Authorize an application.
+   * Authorize an application for app id auth mode
    *
    * @param $appId  application id.
    * @param $appKey secret application key.
-   * @param $serviceId service id, only required in the case of multiple services
+   * @param $serviceId service id.
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -144,11 +145,11 @@ class ThreeScaleClient {
   }
   
   /**
-   * Authorize an application.
+   * Authorize an application for OAuth auth mode.
    *
    * @param $appId  application id or client id (they are equivalent)
    * @param $usage usage
-   * @param $serviceId service id, only required in the case of multiple services
+   * @param $serviceId service id
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -208,10 +209,10 @@ class ThreeScaleClient {
   
 
   /**
-   * Authorize an application.
+   * Authorize an application for usre key auth mode
    *
    * @param $userKey  user key.
-   * @param $serviceId service id, only required in the case of multiple services
+   * @param $serviceId service id
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -273,10 +274,11 @@ class ThreeScaleClient {
 
 
 /**
-   * Authorize and report in a single shot.
+   * Authorize and report in a single shot for app id auth mode
    *
    * @param $appId  application id.
    * @param $appKey secret application key.
+   * @param $serviceId service id.
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -336,6 +338,38 @@ class ThreeScaleClient {
     }
     
   }
+
+  /**
+   * Authorize and report in a single shot for user key auth mode
+   *
+   * @param $userKey  User key.
+   * @param $serviceId service id.
+   *
+   * @return ThreeScaleResponse object containing additional authorization information.
+   * If both provider key and application id are valid, the returned object is actually
+   * @see ThreeScaleAuthorizeResponse (which is derived from ThreeScaleResponse) and
+   * contains additional information about the usage status.
+   *
+   * @see ThreeScaleResponse
+   * @see ThreeScaleAuthorizeResponse
+   *
+   * @throws ThreeScaleServerError in case of unexpected internal server error
+   *
+   * Example:
+   *
+   * <code>
+   *   <?php
+   *   $response = $client->authorize('user_key');
+   *   // or $response = $client->authorize('user_key','service_id');
+   *
+   *   if ($response->isSuccess()) {
+   *     // ok.
+   *   } else {
+   *     // something is wrong.
+   *   }
+   *   ?>
+   * </code>
+   */
 
   public function authrep_with_user_key($userKey, $serviceId = null, $usage = null, $userId = null, $object = null, $no_body = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
@@ -407,21 +441,23 @@ class ThreeScaleClient {
    *   <?php
    *   // Report two transactions of two applications with app_id
    *   $client->report(array(array('app_id' => 'foo', 'usage' => array('hits' => 1)),
-   *                         array('app_id' => 'bar', 'usage' => array('hits' => 1))));
+   *                         array('app_id' => 'bar', 'usage' => array('hits' => 1)), 'service id');
    *
    *   // Report one transaction with timestamp with app_id
    *   $client->report(array(array('app_id'    => 'foo',
    *                               'timestamp' => mktime(15, 14, 00, 2, 27, 2010),
-   *                               'usage'     => array('hits' => 1))));
+   *                               'usage'     => array('hits' => 1), 
+   *                               'service id')));
    *
    *   // Report two transactions of two applications with user_key
    *   $client->report(array(array('user_key' => 'foo', 'usage' => array('hits' => 1)),
-   *                         array('user_key' => 'bar', 'usage' => array('hits' => 1))));
+   *                         array('user_key' => 'bar', 'usage' => array('hits' => 1)), 'service id'));
    *
    *    // Report one transaction with timestamp and with user_key
    *   $client->report(array(array('user_key'    => 'foo',
    *                               'timestamp' => mktime(15, 14, 00, 2, 27, 2010),
-   *                               'usage'     => array('hits' => 1))));
+   *                               'usage'     => array('hits' => 1),
+   *                               'service id')));
    *
    *   ?>
    * </code>                            
