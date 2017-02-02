@@ -30,7 +30,7 @@ class ThreeScaleClientTest extends UnitTestCase {
   }
 
   function testThrowsExceptionIfProviderKeyIsMissing() {
-    $this->expectException(new InvalidArgumentException('missing $providerKey'));
+    $this->expectException(new InvalidArgumentException('missing $providerKeyOrServiceToken'));
     
     new ThreeScaleClient("");
   }
