@@ -306,7 +306,7 @@ class ThreeScaleClient {
    * </code>
    */
 
-   public function authrep($appId, $appKey = null, $serviceId = null, $usage = null, $userId = null, $object = null, $no_body = null) {  
+   public function authrep($appId, $appKey = null, $usage = null, $userId = null, $object = null, $no_body = null, $serviceId = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
 
     $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
@@ -371,7 +371,7 @@ class ThreeScaleClient {
    * </code>
    */
 
-  public function authrep_with_user_key($userKey, $serviceId = null, $usage = null, $userId = null, $object = null, $no_body = null) {  
+  public function authrep_with_user_key($userKey, $usage = null, $userId = null, $object = null, $no_body = null, $serviceId = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
 
     $params = array('user_key' => $userKey);
