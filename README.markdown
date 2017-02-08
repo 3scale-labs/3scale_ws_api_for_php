@@ -153,12 +153,7 @@ If you are interested in integrating the plugin with:
 
 ## To Test
 
-To run tests: `php test/all.php`. Please note that you will first need to set the following environment variables using your own 3scale keys:
-    
- - TEST_3SCALE_PROVIDER_KEY
- - TEST_3SCALE_APP_IDS
- - TEST_3SCALE_APP_KEYS
- - TEST_3SCALE_SERVICE_ID
+To run tests: `php test/all.php`
 
 ## Legal
 
