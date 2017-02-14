@@ -93,6 +93,39 @@ $response->getErrorCode()       // "usage_limits_exceeded"
 $response->getErrorMessage()    // "Usage limits are exceeded"
 ```
 
+### Authrep
+
+To authorize a particular application, call the `authrep_with_app_id_mode` method passing it the 
+`application id` and `service id` and optionally the application key:
+
+```php
+$response = $client->authrep_with_app_id_mode("the app id", "the app key", "service id", array('method_name' => 1));
+```
+
+Then call the `isSuccess()` method on the returned object to see if the authorization was
+successful:
+
+```php
+if ($response->isSuccess()) {
+  // All fine, proceeed.
+} else {
+  // Something's wrong with this app.
+}
+```
+
+If both provider and app id are valid, the response object contains additional information about the status of the application:
+
+```php
+//Returns the name of the plan the application is signed up to.
+$response->getPlan()
+```
+
+You can also use other patterns such as `user_key` mode during the authrep call
+
+```php
+$response = $client->authrep_with_user_key_mode("user_key", "service id", array('method_name' => 1));
+```
+
 ### Report
 
 To report usage, use the `report` method. You can report multiple transaction at the same time:

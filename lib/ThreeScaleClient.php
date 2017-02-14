@@ -274,7 +274,7 @@ class ThreeScaleClient {
 
 
 /**
-   * Authorize and report in a single shot for app id auth mode
+   * Authorize and report in a single shot for app id auth mode in provider key workflow
    *
    * @param $appId  application id.
    * @param $appKey secret application key.
@@ -340,7 +340,7 @@ class ThreeScaleClient {
   }
 
   /**
-   * Authorize and report in a single shot for user key auth mode
+   * Authorize and report in a single shot for user key auth mode in provider key workflow
    *
    * @param $userKey  User key.
    * @param $serviceId service id.
@@ -395,6 +395,132 @@ class ThreeScaleClient {
     if ($serviceId) $params['service_id'] = $serviceId;
     
      
+    $httpResponse = $this->httpClient->get($url, $params);
+
+    if (self::isHttpSuccess($httpResponse)) {
+      return $this->buildAuthorizeResponse($httpResponse->body);
+    } else {
+      return $this->processError($httpResponse);
+    }
+    
+  }
+
+ /**
+   * Authorize and report in a single shot for app id auth mode in service token workflow
+   *
+   * @param $appId  application id.
+   * @param $appKey secret application key.
+   * @param $serviceId service id.
+   *
+   * @return ThreeScaleResponse object containing additional authorization information.
+   * If both provider key and application id are valid, the returned object is actually
+   * @see ThreeScaleAuthorizeResponse (which is derived from ThreeScaleResponse) and
+   * contains additional information about the usage status.
+   *
+   * @see ThreeScaleResponse
+   * @see ThreeScaleAuthorizeResponse
+   *
+   * @throws ThreeScaleServerError in case of unexpected internal server error
+   *
+   * Example:
+   *
+   * <code>
+   *   <?php
+   *   $response = $client->authorize('app-id', 'app-key');
+   *   // or $response = $client->authorize('app-id', 'app-key','service_id');
+   *
+   *   if ($response->isSuccess()) {
+   *     // ok.
+   *   } else {
+   *     // something is wrong.
+   *   }
+   *   ?>
+   * </code>
+   */
+     public function authrep_with_app_id_mode($appId, $appKey = null, $serviceId, $usage = null) {  
+    $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
+
+    $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
+
+    $providerKey = $this->getProviderKey();
+    $serviceToken = $this->getServiceToken();
+
+    if($providerKey) {
+      $params['provider_key'] = $providerKey;
+    }
+
+    if ($serviceToken) {
+      $params['service_token'] = $serviceToken;
+    }
+   
+    if ($appKey) $params['app_key'] = $appKey;
+    if ($usage) $params['usage'] = $usage;
+
+    if($serviceId) $params['service_id'] = $serviceId;
+
+    $httpResponse = $this->httpClient->get($url, $params);
+
+    if (self::isHttpSuccess($httpResponse)) {
+      return $this->buildAuthorizeResponse($httpResponse->body);
+    } else {
+      return $this->processError($httpResponse);
+    }
+    
+  }
+
+/**
+   * Authorize and report in a single shot for user key auth mode in service token workflow
+   *
+   * @param $appId  application id.
+   * @param $appKey secret application key.
+   * @param $serviceId service id.
+   *
+   * @return ThreeScaleResponse object containing additional authorization information.
+   * If both provider key and application id are valid, the returned object is actually
+   * @see ThreeScaleAuthorizeResponse (which is derived from ThreeScaleResponse) and
+   * contains additional information about the usage status.
+   *
+   * @see ThreeScaleResponse
+   * @see ThreeScaleAuthorizeResponse
+   *
+   * @throws ThreeScaleServerError in case of unexpected internal server error
+   *
+   * Example:
+   *
+   * <code>
+   *   <?php
+   *   $response = $client->authorize('app-id', 'app-key');
+   *   // or $response = $client->authorize('app-id', 'app-key','service_id');
+   *
+   *   if ($response->isSuccess()) {
+   *     // ok.
+   *   } else {
+   *     // something is wrong.
+   *   }
+   *   ?>
+   * </code>
+   */
+  public function authrep_with_user_key_mode($userKey, $serviceId, $usage = null) { 
+    $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
+
+    $params = array('user_key' => $userKey);
+
+    $providerKey = $this->getProviderKey();
+    $serviceToken = $this->getServiceToken();
+
+
+    if($providerKey) {
+      $params['provider_key'] = $providerKey;
+    }
+
+    if ($serviceToken) {
+      $params['service_token'] = $serviceToken;
+    }
+     
+    if ($usage) $params['usage'] = $usage;    
+    if ($no_body) $params['no_body'] = $no_body;
+    if ($serviceId) $params['service_id'] = $serviceId;
+    
     $httpResponse = $this->httpClient->get($url, $params);
 
     if (self::isHttpSuccess($httpResponse)) {

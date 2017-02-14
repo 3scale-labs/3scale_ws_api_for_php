@@ -45,6 +45,22 @@ if (getenv('TEST_3SCALE_PROVIDER_KEY') &&
                          $response->getErrorMessage());
     }
 
+    function testSuccessfulAuthrep() {
+      foreach($this->appKeys as $appKey) {
+        $response = $this->client->authrep_with_app_id_mode($this->appIds[0], $appKey, $this->serviceId[0]);
+        $this->assertTrue($response->isSuccess());
+      }
+    }
+
+    function testFailedAuthrep() {
+      $response = $this->client->authrep_with_app_id_mode('boo', $this->serviceId[0], array('hits' => 1));
+      $this->assertFalse($response->isSuccess());
+
+      $this->assertEqual('application_not_found', $response->getErrorCode());
+      $this->assertEqual('application with id="boo" was not found', 
+                         $response->getErrorMessage());
+    }
+
     function testSuccessfulReport() {
       $transactions = array();
 
