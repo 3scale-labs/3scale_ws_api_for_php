@@ -22,33 +22,24 @@ class ThreeScaleClient {
   const DEFAULT_HOST = 'su1.3scale.net';
 
   private $providerKey = null;
-  private $serviceToken = null;
   private $host;
   private $httpClient;
 
   /**
    * Create a ThreeScaleClient instance.
    *
-   * @param $providerKeyOrServiceToken Provider Key or Service Token.
+   * @param $providerKey If (!Provider Key) then service token workflow is triggered.
    * @param $host String Hostname of 3scale backend server. Usually there is no reason to use anything
    *              else than the default value.
-   * @param $isServiceToken Flag for service token. If value is false then provider key flow else service token flow.
    * @param $httpClient Object Object for handling HTTP requests. Default is CURL. Don't change it
    *                    unless you know what you are doing.
    */
-  public function __construct($providerKeyOrServiceToken, $isServiceToken = false, $host = self::DEFAULT_HOST, $httpClient = null) {
-    if (!$providerKeyOrServiceToken) {
-      throw new InvalidArgumentException('missing $providerKeyOrServiceToken');
-    }
-
-    if($isServiceToken) {
-      $this->serviceToken = $providerKeyOrServiceToken;
-    } else {
-      $this->providerKey = $providerKeyOrServiceToken;
-    }
+  public function __construct($providerKey = null, $host = self::DEFAULT_HOST, $httpClient = null) {
+    if ($providerKey) {
+      $this->providerKey = $providerKey;
+    } 
 
     $this->host = $host;
-
     $this->setHttpClient($httpClient);
   }
 
@@ -58,14 +49,6 @@ class ThreeScaleClient {
    */
   public function getProviderKey() {
     return $this->providerKey;
-  }
-
-    /**
-   * Get service token.
-   * @return string
-   */
-  public function getServiceToken() {
-    return $this->serviceToken;
   }
 
   /**
@@ -411,6 +394,7 @@ class ThreeScaleClient {
    * @param $appId  application id.
    * @param $appKey secret application key.
    * @param $serviceId service id.
+   * @param $servicetoken service token.
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -437,26 +421,13 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-     public function authrep_with_app_id_mode($appId, $appKey = null, $serviceId, $usage = null) {  
+   public function authrep_with_app_id_mode($serviceToken, $serviceId, $appId, $appKey = null,  $usage = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
 
-    $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
-
-    $providerKey = $this->getProviderKey();
-    $serviceToken = $this->getServiceToken();
-
-    if($providerKey) {
-      $params['provider_key'] = $providerKey;
-    }
-
-    if ($serviceToken) {
-      $params['service_token'] = $serviceToken;
-    }
+    $params = array('service_token' => $serviceToken, 'app_id' => $appId, 'service_id' => $serviceId);
    
     if ($appKey) $params['app_key'] = $appKey;
     if ($usage) $params['usage'] = $usage;
-
-    if($serviceId) $params['service_id'] = $serviceId;
 
     $httpResponse = $this->httpClient->get($url, $params);
 
@@ -474,6 +445,7 @@ class ThreeScaleClient {
    * @param $appId  application id.
    * @param $appKey secret application key.
    * @param $serviceId service id.
+   * @param $servicetoken service token.
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -500,27 +472,14 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-  public function authrep_with_user_key_mode($userKey, $serviceId, $usage = null) { 
+
+   public function authrep_with_user_key_mode($serviceToken, $serviceId, $userKey, $usage = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
 
-    $params = array('user_key' => $userKey);
+    $params = array('service_token' => $serviceToken, 'user_key' => $userKey, 'service_id' => $serviceId);
 
-    $providerKey = $this->getProviderKey();
-    $serviceToken = $this->getServiceToken();
+    if ($usage) $params['usage'] = $usage;
 
-
-    if($providerKey) {
-      $params['provider_key'] = $providerKey;
-    }
-
-    if ($serviceToken) {
-      $params['service_token'] = $serviceToken;
-    }
-     
-    if ($usage) $params['usage'] = $usage;    
-    if ($no_body) $params['no_body'] = $no_body;
-    if ($serviceId) $params['service_id'] = $serviceId;
-    
     $httpResponse = $this->httpClient->get($url, $params);
 
     if (self::isHttpSuccess($httpResponse)) {
@@ -751,5 +710,4 @@ class ThreeScaleServerError extends ThreeScaleException {
 }
 
 ?>
-
 

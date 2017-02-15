@@ -21,10 +21,10 @@ require_once('lib/ThreeScaleClient.php')
 
 Then create an instance of the client
 ```php
-$client = new ThreeScaleClient("your_service_token", true);
+$client = new ThreeScaleClient();
 ```
 
-> NOTE: unless you specify ```(your_service_token", true)``` you will be expected to specify
+> NOTE: unless you specify ```ThreeScaleClient()``` you will be expected to specify
 a `provider_key` parameter, which is deprecated in favor of Service Tokens:
 ```php
 $client = new ThreeScaleClient("your provider key");
@@ -99,7 +99,7 @@ To authorize a particular application, call the `authrep_with_app_id_mode` metho
 `application id` and `service id` and optionally the application key:
 
 ```php
-$response = $client->authrep_with_app_id_mode("the app id", "the app key", "service id", array('method_name' => 1));
+$response = $client->authrep_with_app_id_mode("service token", "service id", "the app id", "the app key", array('method_name' => 1));
 ```
 
 Then call the `isSuccess()` method on the returned object to see if the authorization was
@@ -123,7 +123,7 @@ $response->getPlan()
 You can also use other patterns such as `user_key` mode during the authrep call
 
 ```php
-$response = $client->authrep_with_user_key_mode("user_key", "service id", array('method_name' => 1));
+$response = $client->authrep_with_user_key_mode("service token, "service id", ""user_key", "service id", array('method_name' => 1));
 ```
 
 ### Report
