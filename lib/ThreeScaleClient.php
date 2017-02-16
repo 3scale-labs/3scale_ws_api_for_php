@@ -91,35 +91,29 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-  public function authorize($appId, $appKey = null, $serviceId = null, $usage = null) {
+   public function authorize($appId, $appKey = null, $ThreeScaleClientCredentials, $usage = null) {
     $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
     $params = array('app_id' => $appId);
 
     $providerKey = $this->getProviderKey();
-    $serviceToken = $this->getServiceToken();
 
     if($providerKey) {
-      $params['provider_key'] = $providerKey;
-    }
-
-    if ($serviceToken) {
-      $params['service_token'] = $serviceToken;
+      $params['provider_key'] = $this->getProviderKey();
+      $params['service_id'] = $ThreeScaleClientCredentials;
+    } else {
+      $params['service_token'] = $ThreeScaleClientCredentials['service_token'];
+      $params['service_id'] = $ThreeScaleClientCredentials['service_id'];
     }
 
     if ($appKey) {
       $params['app_key'] = $appKey;
     }
     
-    if ($serviceId) {
-      $params['service_id'] = $serviceId;
-    }
-
     if ($usage) {
       $params['usage'] = $usage;
     }
     
     $httpResponse = $this->httpClient->get($url, $params);
-
     if (self::isHttpSuccess($httpResponse)) {
       return $this->buildAuthorizeResponse($httpResponse->body);
     } else {

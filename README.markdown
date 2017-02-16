@@ -24,7 +24,7 @@ Then create an instance of the client
 $client = new ThreeScaleClient();
 ```
 
-> NOTE: unless you specify ```ThreeScaleClient()``` you will be expected to specify
+> NOTE: unless you specify ```ThreeScaleClient();``` you will be expected to specify
 a `provider_key` parameter, which is deprecated in favor of Service Tokens:
 ```php
 $client = new ThreeScaleClient("your provider key");
@@ -40,7 +40,13 @@ To authorize a particular application, call the `authorize` method passing it th
 `application id` and `service id` and optionally the application key:
 
 ```php
-$response = $client->authorize("the app id", "the app key", "service id");
+$response = $client->authorize("the app id", "the app key", array("service_id" => "service id", "service_token" =>"service token"));
+```
+
+If you had configured a (deprecated) provider key, you would instead use:
+
+```php
+$response = $client->authorize("the app id", "the app key", "service id"));
 ```
 
 Then call the `isSuccess()` method on the returned object to see if the authorization was
