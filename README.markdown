@@ -32,7 +32,17 @@ $client = new ThreeScaleClient("your provider key");
 
 Because the object is stateless, you can create just one and store it globally.
 
-**NOTE: From November 2016 `service_id` is mandatory.**
+Then you can perform calls in the client:
+
+```php
+$response = $client->authorize("app id", "app key", new ThreeScaleClientCredentials("service id", "service token"));
+```
+
+```php
+$response = $client->report(array(array('app_id' => "app's id"],'usage' => array('hits' => 1))), new ThreeScaleClientCredentials("service id", "service token"));
+```
+
+**NOTE:`service_id` is mandatory since November 2016, both when using service tokens and when using provider keys**
 
 ### Authorize
 
@@ -40,7 +50,7 @@ To authorize a particular application, call the `authorize` method passing it th
 `application id` and `service id` and optionally the application key:
 
 ```php
-$response = $client->authorize("the app id", "the app key", array("service_id" => "service id", "service_token" =>"service token"));
+$response = $client->authorize("app id", "app key", new ThreeScaleClientCredentials("service id", "service token"));
 ```
 
 If you had configured a (deprecated) provider key, you would instead use:
@@ -101,11 +111,11 @@ $response->getErrorMessage()    // "Usage limits are exceeded"
 
 ### Authrep
 
-To authorize a particular application, call the `authrep_with_app_id_mode` method passing it the 
+To authorize a particular application, call the `authrep` method passing it the 
 `application id` and `service id` and optionally the application key:
 
 ```php
-$response = $client->authrep_with_app_id_mode("service token", "service id", "the app id", "the app key", array('method_name' => 1));
+$response = $client->authrep("app id", "app key", new ThreeScaleClientCredentials("service id", "service token"), array('hits' => 1));
 ```
 
 Then call the `isSuccess()` method on the returned object to see if the authorization was
@@ -129,7 +139,7 @@ $response->getPlan()
 You can also use other patterns such as `user_key` mode during the authrep call
 
 ```php
-$response = $client->authrep_with_user_key_mode("service token, "service id", ""user_key", "service id", array('method_name' => 1));
+$response = $client->authrep_with_user_key("app id", "app key", new ThreeScaleClientCredentials("service id", "service token"), array('hits' => 1));
 ```
 
 ### Report
@@ -139,17 +149,17 @@ To report usage, use the `report` method. You can report multiple transaction at
 ```php    
 $response = $client->report(array(
       array('app_id' => "first app's id",'usage' => array('hits' => 1)),
-      array('app_id' => "second app's id", 'usage' => array('hits' => 1))), "service id");
+      array('app_id' => "second app's id", 'usage' => array('hits' => 1))), new ThreeScaleClientCredentials("service id", "service token"));
 ```
 
-The `"app_id"`,  `"usage"` parameters are required alongiwth `service id`. Additionaly, you can specify a timestamp
+The `"app_id"`,  `"usage"` parameters are required alongiwth `service id` and `service token`. Additionaly, you can specify a timestamp
 of the transaction:
 
 ```php
 $response = $client->report(array(
   array('app_id'    => "app's id",
         'usage'     => array('hits' => 1),
-        'timestamp' => mktime(12, 36, 0, 4, 28, 2010, "service id"))));
+        'timestamp' => mktime(12, 36, 0, 4, 28, 2010, new ThreeScaleClientCredentials("service id", "service token")));
 ```
 
 The timestamp can be either an unix timestamp (as integer) or a string. The string has to be in a
