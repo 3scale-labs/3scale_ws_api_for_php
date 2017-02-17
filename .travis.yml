@@ -5,6 +5,7 @@ php:
 env:
   global:
   - TEST_3SCALE_APP_IDS=4d4b20b9 TEST_3SCALE_APP_KEYS=ecce202ecc2eb8dc7a499c34a34d5987
-  - secure: "dibylTYaUYDf9OIVpGPma+BKc/QZiSaMoY7ISNv2TQVQefhDWB/jn7/8VBVCkEgdCJt3vZu7YVrjZ5RcHrI1SshC2v4FtHX85pf8++6OHcuNv1E8sCigGclF2L7l2kYIxPyrbbQGLp+TDtAXfPFRae4fhOkBebRE9aX9QJayAOE="
+  - secure: "N4m/jyamokMvS7IuUjDzzexp6hExqFx2b7TZfFsKKBUVvbmdt0OuE/lgh68pFiFgAWNUwqhU8f7QmE6Snz8adqndgw+gaPVbOmLmFSt4/MUW7VjIgRvINZjKJQ6Rw18NjJ3eAl91XxtDK3kkD9pKbcV6Vb7uR1g0khNGxbSdTlI="
+  - secure: "BaSNNNJC62aLH9b1xrOryLDZBtiWLvUcOjKA9pXQq6u1wvUNBMr6cQHwV7MQZTHlxAhGh+fahC9c6VInVVp7SyH4gcMI2Feq2CkAHBIFN4umBZC5rVVAgjM48UOg+qp5cYyyKzUhvFqAhAgmKh0dvoB+hLrY0qfKQ4sufSRTmUk="
   - secure: "myAM1Jeqrm2AuOiz96g/3KgQtqAxdWNn/0JuTGyKU2bdORtTthrfWZ7L+Sx6NP1e/GsioJ9iuqp0Q4aEvoJ6JtQLJhAXeRSovnuNRvaVnPqAsI/E2530laQOuGw8qgVLr7Kq1BkfoIF2Hc7J74yu7+Tyog+uSA+hpIyadHbFem8="
 script: php test/all.php
