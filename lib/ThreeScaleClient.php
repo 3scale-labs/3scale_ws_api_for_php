@@ -17,13 +17,17 @@ require_once(dirname(__FILE__) . '/ThreeScaleAuthorizeResponse.php');
  *
  * Objects of this class are stateless and can be shared through multiple
  * transactions and by multiple clients.
+ * DEFAULT_HOST = su1.3scale.et communicates with 3scale saas platform. When connecting to an on-premise instance of the  3scale platform replace it with correct host and port
  */
 class ThreeScaleClient {
   const DEFAULT_HOST = 'su1.3scale.net';
+  const DEFAULT_PORT = '80';
 
   private $providerKey = null;
   private $host;
   private $httpClient;
+  private $port;
+
 
   /**
    * Create a ThreeScaleClient instance.
@@ -34,13 +38,14 @@ class ThreeScaleClient {
    * @param $httpClient Object Object for handling HTTP requests. Default is CURL. Don't change it
    *                    unless you know what you are doing.
    */
-  public function __construct($providerKey = null, $host = self::DEFAULT_HOST, $httpClient = null) {
+  public function __construct($providerKey = null, $host = self::DEFAULT_HOST, $port = self::DEFAULT_PORT, $httpClient = null) {
     if ($providerKey) {
       $this->providerKey = $providerKey;
     } 
 
     $this->host = $host;
     $this->setHttpClient($httpClient);
+    $this->port = $port;
   }
 
   /**
@@ -52,11 +57,19 @@ class ThreeScaleClient {
   }
 
   /**
-   * Get hostname of 3scale backend server.
+   * Get hostname of backend server.
    * @return string
    */
   public function getHost() {
     return $this->host;
+  }
+
+  /**
+   * Get port of the backend server.
+   * @return string
+   */
+  public function getPort() {
+    return $this->port;
   }
 
   /**
@@ -94,7 +107,7 @@ class ThreeScaleClient {
    */
   
      public function authorize($appId, $appKey = null, $credentials_or_service_id, $usage = null) {
-    $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
+    $url = "http://" . $this->getHost() . ":" . $this->getPort() . "/transactions/authorize.xml";
     $params = array('app_id' => $appId);
 
     if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
@@ -156,7 +169,7 @@ class ThreeScaleClient {
    * </code>
    */
   public function oauth_authorize($appId, $credentials_or_service_id, $usage = null) {
-    $url = "http://" . $this->getHost() . "/transactions/oauth_authorize.xml";
+    $url = "http://" . $this->getHost() . ":" . $this->getPort() . "/transactions/oauth_authorize.xml";
     $params = array('app_id' => $appId);
 
    if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
@@ -215,7 +228,7 @@ class ThreeScaleClient {
    */
 
   public function authorize_with_user_key($userKey, $credentials_or_service_id, $usage = null) {
-    $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
+    $url = "http://" . $this->getHost() . ":" . $this->getPort() . "/transactions/authorize.xml";
     $params = array('user_key' => $userKey);
     
     if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
@@ -275,7 +288,7 @@ class ThreeScaleClient {
    */
 
    public function authrep($appId, $appKey = null, $credentials_or_service_id, $usage = null, $userId = null, $object = null, $no_body = null) {  
-    $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
+    $url = "http://" . $this->getHost() . ":" . $this->getPort() . "/transactions/authrep.xml";
 
     $params = array('app_id' => $appId);
 
@@ -337,7 +350,7 @@ class ThreeScaleClient {
    */
 
   public function authrep_with_user_key($userKey, $credentials_or_service_id, $usage = null, $userId = null, $object = null, $no_body = null) {  
-    $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
+    $url = "http://" . $this->getHost() . ":" . $this->getPort() . "/transactions/authrep.xml";
 
     $params = array('user_key' => $userKey);
 
@@ -429,7 +442,7 @@ class ThreeScaleClient {
       throw new InvalidArgumentException('no transactions to report');
     }
     
-    $url = "http://" . $this->getHost() . "/transactions.xml";
+    $url = "http://" . $this->getHost() . ":" . $this->getPort() . "/transactions.xml";
 
     $params = array();
 
