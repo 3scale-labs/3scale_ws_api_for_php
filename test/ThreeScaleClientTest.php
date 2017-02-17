@@ -29,10 +29,10 @@ class ThreeScaleClientTest extends UnitTestCase {
     $this->client->setHttpClient($this->httpClient);
   }
 
-  function testThrowsExceptionIfProviderKeyIsMissing() {
-    $this->expectException(new InvalidArgumentException('missing $providerKey'));
+  function testThrowsExceptionIfServiceTokenIsMissing() {
+    $this->expectException(new InvalidArgumentException('missing $service_token'));
     
-    new ThreeScaleClient("");
+    new ThreeScaleClient("foo","bar", new ThreeScaleClientCredentials("12345", ""));
   }
 
   function testDefaultHost() {
@@ -64,7 +64,7 @@ class ThreeScaleClientTest extends UnitTestCase {
              </status>';
 
     $this->httpClient->setReturnValue('get', new StubResponse(200, $body));
-    $response = $this->client->authorize('foo');
+    $response = $this->client->authorize('foo', "bar", new ThreeScaleClientCredentials("1234","1234"));
 
     $this->assertTrue($response->isSuccess());
     $this->assertEqual('Ultimate', $response->getPlan());
@@ -110,7 +110,7 @@ class ThreeScaleClientTest extends UnitTestCase {
              </status>';
     
     $this->httpClient->setReturnValue('get', new StubResponse(200, $body));
-    $response = $this->client->authorize('foo');
+    $response = $this->client->authorize('foo', "bar", new ThreeScaleClientCredentials("1234","12345"));
 
     $this->assertFalse($response->isSuccess());
     $this->assertEqual('usage limits are exceeded', $response->getErrorMessage());
@@ -126,7 +126,7 @@ class ThreeScaleClientTest extends UnitTestCase {
              </error>';
     
     $this->httpClient->setReturnValue('get', new StubResponse(403, $body));
-    $response = $this->client->authorize('foo');
+    $response = $this->client->authorize('foo', "bar", new ThreeScaleClientCredentials("1234","12345"));
 
     $this->assertFalse($response->isSuccess());
     $this->assertEqual('application_not_found', $response->getErrorCode());
@@ -138,12 +138,12 @@ class ThreeScaleClientTest extends UnitTestCase {
     $this->httpClient->setReturnValue('get', new StubResponse(500, 'OMG! WTF!'));
 
     $this->expectException(new ThreeScaleServerError);
-    $this->client->authorize('foo');
+    $this->client->authorize('foo', "bar", new ThreeScaleClientCredentials("1234","12345"));
   }
   
   function testReportRaisesExceptionIfNoTransactionsGiven() {
     $this->expectException(new InvalidArgumentException('no transactions to report'));
-    $this->client->report(array());
+    $this->client->report(array(), new ThreeScaleClientCredentials("12345","12345"));
   }
 
   function testSuccessfulReport() {
@@ -151,7 +151,8 @@ class ThreeScaleClientTest extends UnitTestCase {
     $response = $this->client->report(array(
       array('app_id'    => 'foo',
             'timestamp' => mktime(10, 10, 0, 4, 27, 2010),
-            'usage'     => array('hits' => 1))));
+            'usage'     => array('hits' => 1))),
+            new ThreeScaleClientCredentials("12345","12345"));
 
     $this->assertTrue($response->isSuccess());
   }
@@ -160,7 +161,8 @@ class ThreeScaleClientTest extends UnitTestCase {
     $this->httpClient->expectOnce('post',
       array('http://' . ThreeScaleClient::DEFAULT_HOST . '/transactions.xml',
         array(
-          'provider_key' => '1234abcd',
+          'service_token' => '12345',
+          'service_id' => '12345',
           'transactions' => array(
             '0' => array(
               'app_id'    => 'foo',
@@ -180,15 +182,18 @@ class ThreeScaleClientTest extends UnitTestCase {
 
       array('app_id'    => 'bar',
             'usage'     => array('hits' => 1),
-            'timestamp' => mktime(15, 55, 12, 4, 27, 2010))));
+            'timestamp' => mktime(15, 55, 12, 4, 27, 2010))),
+      new ThreeScaleClientCredentials("12345","12345"));
   }
   
   function testFailedReport() {
     $errorBody = '<error code="provider_key_invalid">provider key "foo" is invalid</error>';
     
     $this->httpClient->setReturnValue('post', new StubResponse(403, $errorBody));
-    $response = $this->client->report(array(array('app_id' => 'abc', 
-                                                  'usage'  => array('hits' => 1))));
+    #$response = $this->client->report(array(array('app_id' => 'abc', 
+                 //                                 'usage'  => array('hits' => 1),
+                   //                               new ThreeScaleClientCredentials("2555902","2555902"))));
+    $response = $this->client->report(array(array('app_id' => 'abc', 'usage' => array('hits' => 1))), new ThreeScaleClientCredentials("12345","12345"));
 
     $this->assertFalse($response->isSuccess());
     $this->assertEqual('provider_key_invalid',          $response->getErrorCode());
@@ -199,7 +204,7 @@ class ThreeScaleClientTest extends UnitTestCase {
     $this->httpClient->setReturnValue('post', new StubResponse(500, 'OMG! WTF!'));
 
     $this->expectException(new ThreeScaleServerError);
-    $this->client->report(array(array('app_id' => 'foo', 'usage' => array('hits' => 1))));
+    $this->client->report(array(array('app_id' => 'foo', 'usage' => array('hits' => 1))), new ThreeScaleClientCredentials("2555902","2555902"));
   }
 
   private function assertEqualTime($expected, $actual) {

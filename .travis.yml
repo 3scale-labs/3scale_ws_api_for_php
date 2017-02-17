@@ -1,10 +1,11 @@
 language: php
 php:
-#  - 5.2 # does not have  DateTime::getTimestamp()
-  - 5.3
-  - 5.4
-before_script:
- - export TEST_3SCALE_APP_KEYS=3e05c797ef193fee452b1ddf19defa74
- - export TEST_3SCALE_APP_IDS=75165984
- - export TEST_3SCALE_PROVIDER_KEY=05273bcb282d1d4faafffeb01e224db0
+- 5.3
+- 5.4
+env:
+  global:
+  - TEST_3SCALE_APP_IDS=4d4b20b9 TEST_3SCALE_APP_KEYS=ecce202ecc2eb8dc7a499c34a34d5987
+  - secure: "N4m/jyamokMvS7IuUjDzzexp6hExqFx2b7TZfFsKKBUVvbmdt0OuE/lgh68pFiFgAWNUwqhU8f7QmE6Snz8adqndgw+gaPVbOmLmFSt4/MUW7VjIgRvINZjKJQ6Rw18NjJ3eAl91XxtDK3kkD9pKbcV6Vb7uR1g0khNGxbSdTlI="
+  - secure: "BaSNNNJC62aLH9b1xrOryLDZBtiWLvUcOjKA9pXQq6u1wvUNBMr6cQHwV7MQZTHlxAhGh+fahC9c6VInVVp7SyH4gcMI2Feq2CkAHBIFN4umBZC5rVVAgjM48UOg+qp5cYyyKzUhvFqAhAgmKh0dvoB+hLrY0qfKQ4sufSRTmUk="
+  - secure: "myAM1Jeqrm2AuOiz96g/3KgQtqAxdWNn/0JuTGyKU2bdORtTthrfWZ7L+Sx6NP1e/GsioJ9iuqp0Q4aEvoJ6JtQLJhAXeRSovnuNRvaVnPqAsI/E2530laQOuGw8qgVLr7Kq1BkfoIF2Hc7J74yu7+Tyog+uSA+hpIyadHbFem8="
 script: php test/all.php

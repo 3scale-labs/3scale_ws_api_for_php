@@ -21,27 +21,25 @@ require_once(dirname(__FILE__) . '/ThreeScaleAuthorizeResponse.php');
 class ThreeScaleClient {
   const DEFAULT_HOST = 'su1.3scale.net';
 
-  private $providerKey;
+  private $providerKey = null;
   private $host;
   private $httpClient;
 
   /**
    * Create a ThreeScaleClient instance.
    *
-   * @param $providerKey String Unique API key that identifies the provider.
+   * @param $providerKey If (!Provider Key) then service token workflow is triggered.
    * @param $host String Hostname of 3scale backend server. Usually there is no reason to use anything
    *              else than the default value.
    * @param $httpClient Object Object for handling HTTP requests. Default is CURL. Don't change it
    *                    unless you know what you are doing.
    */
-  public function __construct($providerKey, $host = self::DEFAULT_HOST, $httpClient = null) {
-    if (!$providerKey) {
-      throw new InvalidArgumentException('missing $providerKey');
-    }
+  public function __construct($providerKey = null, $host = self::DEFAULT_HOST, $httpClient = null) {
+    if ($providerKey) {
+      $this->providerKey = $providerKey;
+    } 
 
-    $this->providerKey = $providerKey;
     $this->host = $host;
-
     $this->setHttpClient($httpClient);
   }
 
@@ -62,11 +60,12 @@ class ThreeScaleClient {
   }
 
   /**
-   * Authorize an application.
+   * Authorize an application for app id auth mode
    *
    * @param $appId  application id.
    * @param $appKey secret application key.
-   * @param $serviceId service id required (from November 2016)
+   * @param ThreeScaleClientCredentials $credentials_or_service_id accepts service id and service token as tuple
+   * @param string $credentials_or_service_id accepts only service id
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -93,37 +92,43 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-  public function authorize($appId, $appKey = null, $serviceId = null, $usage = null) {
+  
+     public function authorize($appId, $appKey = null, $credentials_or_service_id, $usage = null) {
     $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
-    $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
+    $params = array('app_id' => $appId);
+
+    if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
+      $params['service_token'] = $credentials_or_service_id->service_token;
+      $params['service_id'] = $credentials_or_service_id->service_id;
+    } else {
+      $params['provider_key'] = $this->getProviderKey();
+      $params['service_id'] = $credentials_or_service_id;
+    }
 
     if ($appKey) {
       $params['app_key'] = $appKey;
     }
     
-    if ($serviceId) {
-      $params['service_id'] = $serviceId;
-    }
-
     if ($usage) {
       $params['usage'] = $usage;
     }
     
     $httpResponse = $this->httpClient->get($url, $params);
-
     if (self::isHttpSuccess($httpResponse)) {
       return $this->buildAuthorizeResponse($httpResponse->body);
     } else {
       return $this->processError($httpResponse);
     }
   }
-  
+
+
   /**
-   * Authorize an application.
+   * Authorize an application for OAuth auth mode.
    *
    * @param $appId  application id or client id (they are equivalent)
    * @param $usage usage
-   * @param $serviceId service id, required (from November 2016)
+   * @param ThreeScaleClientCredentials $credentials_or_service_id accepts service id and service token as tuple
+   * @param string $credentials_or_service_id accepts only service id
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -150,13 +155,18 @@ class ThreeScaleClient {
    *   ?>
    * </code>
    */
-  public function oauth_authorize($appId, $serviceId = null, $usage = null) {
+  public function oauth_authorize($appId, $credentials_or_service_id, $usage = null) {
     $url = "http://" . $this->getHost() . "/transactions/oauth_authorize.xml";
-    $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
-    
-    if ($serviceId) {
-      $params['service_id'] = $serviceId;
+    $params = array('app_id' => $appId);
+
+   if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
+      $params['service_token'] = $credentials_or_service_id->service_token;
+      $params['service_id'] = $credentials_or_service_id->service_id;
+    } else {
+      $params['provider_key'] = $this->getProviderKey();
+      $params['service_id'] = $credentials_or_service_id;
     }
+
     if ($usage) {
       $params['usage'] = $usage;
     }
@@ -172,10 +182,11 @@ class ThreeScaleClient {
   
 
   /**
-   * Authorize an application.
+   * Authorize an application for user key auth mode
    *
    * @param $userKey  user key.
-   * @param $serviceId service id, required (from November 2016)
+   * @param ThreeScaleClientCredentials $credentials_or_service_id accepts service id and service token as tuple
+   * @param string $credentials_or_service_id accepts only service id
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -203,12 +214,16 @@ class ThreeScaleClient {
    * </code>
    */
 
-  public function authorize_with_user_key($userKey, $serviceId = null, $usage = null) {
+  public function authorize_with_user_key($userKey, $credentials_or_service_id, $usage = null) {
     $url = "http://" . $this->getHost() . "/transactions/authorize.xml";
-    $params = array('provider_key' => $this->getProviderKey(), 'user_key' => $userKey);
-
-    if ($serviceId) {
-      $params['service_id'] = $serviceId;
+    $params = array('user_key' => $userKey);
+    
+    if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
+      $params['service_token'] = $credentials_or_service_id->service_token;
+      $params['service_id'] = $credentials_or_service_id->service_id;
+    } else {
+      $params['provider_key'] = $this->getProviderKey();
+      $params['service_id'] = $credentials_or_service_id;
     }
 
     if ($usage) {
@@ -226,10 +241,12 @@ class ThreeScaleClient {
 
 
 /**
-   * Authorize and report in a single shot.
+   * Authorize and report in a single shot for app id auth mode
    *
    * @param $appId  application id.
    * @param $appKey secret application key.
+   * @param ThreeScaleClientCredentials $credentials_or_service_id accepts service id and service token as tuple
+   * @param string $credentials_or_service_id accepts only service id
    *
    * @return ThreeScaleResponse object containing additional authorization information.
    * If both provider key and application id are valid, the returned object is actually
@@ -257,17 +274,24 @@ class ThreeScaleClient {
    * </code>
    */
 
-   public function authrep($appId, $appKey = null, $usage = null, $userId = null, $object = null, $no_body = null, $serviceId = null) {  
+   public function authrep($appId, $appKey = null, $credentials_or_service_id, $usage = null, $userId = null, $object = null, $no_body = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
 
-    $params = array('provider_key' => $this->getProviderKey(), 'app_id' => $appId);
+    $params = array('app_id' => $appId);
+
+    if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
+      $params['service_token'] = $credentials_or_service_id->service_token;
+      $params['service_id'] = $credentials_or_service_id->service_id;
+    } else {
+      $params['provider_key'] = $this->getProviderKey();
+      $params['service_id'] = $credentials_or_service_id;
+    }
    
     if ($appKey) $params['app_key'] = $appKey;
     if ($userId) $params['user_id'] = $userId;
     if ($object) $params['object'] = $object;
     if ($usage) $params['usage'] = $usage;
     if ($no_body) $params['no_body'] = $no_body;
-    if ($serviceId) $params['service_id'] = $serviceId;
      
     $httpResponse = $this->httpClient->get($url, $params);
 
@@ -279,16 +303,58 @@ class ThreeScaleClient {
     
   }
 
-  public function authrep_with_user_key($userKey, $usage = null, $userId = null, $object = null, $no_body = null, $serviceId = null) {  
+  /**
+   * Authorize and report in a single shot for user key auth mode
+   *
+   * @param $userKey  User key.
+   * @param ThreeScaleClientCredentials $credentials_or_service_id accepts service id and service token as tuple
+   * @param string $credentials_or_service_id accepts only service id
+   *
+   * @return ThreeScaleResponse object containing additional authorization information.
+   * If both provider key and application id are valid, the returned object is actually
+   * @see ThreeScaleAuthorizeResponse (which is derived from ThreeScaleResponse) and
+   * contains additional information about the usage status.
+   *
+   * @see ThreeScaleResponse
+   * @see ThreeScaleAuthorizeResponse
+   *
+   * @throws ThreeScaleServerError in case of unexpected internal server error
+   *
+   * Example:
+   *
+   * <code>
+   *   <?php
+   *   $response = $client->authorize('user_key');
+   *   // or $response = $client->authorize('user_key','service_id');
+   *
+   *   if ($response->isSuccess()) {
+   *     // ok.
+   *   } else {
+   *     // something is wrong.
+   *   }
+   *   ?>
+   * </code>
+   */
+
+  public function authrep_with_user_key($userKey, $credentials_or_service_id, $usage = null, $userId = null, $object = null, $no_body = null) {  
     $url = "http://" . $this->getHost() . "/transactions/authrep.xml";
 
-    $params = array('provider_key' => $this->getProviderKey(), 'user_key' => $userKey);
-      
+    $params = array('user_key' => $userKey);
+
+    if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
+
+      $params['service_token'] = $credentials_or_service_id->service_token;
+      $params['service_id'] = $credentials_or_service_id->service_id;
+    } else {
+
+      $params['provider_key'] = $this->getProviderKey();
+      $params['service_id'] = $credentials_or_service_id;
+    }
+     
     if ($userId) $params['user_id'] = $userId;
     if ($object) $params['object'] = $object;
     if ($usage) $params['usage'] = $usage;
     if ($no_body) $params['no_body'] = $no_body;
-    if ($serviceId) $params['service_id'] = $serviceId;
     
      
     $httpResponse = $this->httpClient->get($url, $params);
@@ -337,26 +403,28 @@ class ThreeScaleClient {
    *   <?php
    *   // Report two transactions of two applications with app_id
    *   $client->report(array(array('app_id' => 'foo', 'usage' => array('hits' => 1)),
-   *                         array('app_id' => 'bar', 'usage' => array('hits' => 1))));
+   *                         array('app_id' => 'bar', 'usage' => array('hits' => 1)), 'service id');
    *
    *   // Report one transaction with timestamp with app_id
    *   $client->report(array(array('app_id'    => 'foo',
    *                               'timestamp' => mktime(15, 14, 00, 2, 27, 2010),
-   *                               'usage'     => array('hits' => 1))));
+   *                               'usage'     => array('hits' => 1), 
+   *                               'service id')));
    *
    *   // Report two transactions of two applications with user_key
    *   $client->report(array(array('user_key' => 'foo', 'usage' => array('hits' => 1)),
-   *                         array('user_key' => 'bar', 'usage' => array('hits' => 1))));
+   *                         array('user_key' => 'bar', 'usage' => array('hits' => 1)), 'service id'));
    *
    *    // Report one transaction with timestamp and with user_key
    *   $client->report(array(array('user_key'    => 'foo',
    *                               'timestamp' => mktime(15, 14, 00, 2, 27, 2010),
-   *                               'usage'     => array('hits' => 1))));
+   *                               'usage'     => array('hits' => 1),
+   *                               'service id')));
    *
    *   ?>
    * </code>                            
    */
-  public function report($transactions, $serviceId = null) {
+  public function report($transactions, $credentials_or_service_id) {
     if (empty($transactions)) {
       throw new InvalidArgumentException('no transactions to report');
     }
@@ -364,8 +432,16 @@ class ThreeScaleClient {
     $url = "http://" . $this->getHost() . "/transactions.xml";
 
     $params = array();
-    $params['provider_key'] = urlencode($this->getProviderKey());
-    if ($serviceId) $params['service_id'] = urlencode($serviceId);
+
+    if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
+
+      $params['service_token'] = $credentials_or_service_id->service_token;
+      $params['service_id'] = $credentials_or_service_id->service_id;
+    } else {
+      $params['provider_key'] = $this->getProviderKey();
+      $params['service_id'] = $credentials_or_service_id;
+    }
+
     $params['transactions'] = $this->encodeTransactions($transactions);
     
     $httpResponse = $this->httpClient->post($url, $params);
@@ -504,4 +580,23 @@ class ThreeScaleServerError extends ThreeScaleException {
   }
 }
 
+ /* Objects of this class are stateless and can be shared through multiple
+ * transactions and by multiple clients.
+ */
+class ThreeScaleClientCredentials {
+  public $service_id;
+  public $service_token;
+
+  public function __construct($service_id, $service_token) {
+   
+   if (!$service_token){
+    throw new InvalidArgumentException('missing $service_token');
+   }
+
+   $this->service_token=$service_token;
+   $this->service_id=$service_id;
+  }
+}
+
 ?>
+
