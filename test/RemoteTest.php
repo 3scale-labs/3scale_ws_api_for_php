@@ -78,8 +78,8 @@ if (getenv('TEST_3SCALE_PROVIDER_KEY') &&
   }
 
 } else {
-  echo "This test executes real requests against 3scale backend server. It needs to know provider key, service id, application ids and application keys to use in the requests. You have to set these environment variables:\n";
-  echo " * TEST_3SCALE_PROVIDER_KEY - provider key.\n";
+  echo "This test executes real requests against 3scale backend server. It needs to know service token, service id, application ids and application keys to use in the requests. You have to set these environment variables:\n";
+  echo " * TEST_3SCALE_SERVICE_TOKEN - service token.\n";
   echo " * TEST_3SCALE_SERVICE_ID   - service id.\n";
   echo " * TEST_3SCALE_APP_IDS      - list of application ids, separated by commas.\n";
   echo " * TEST_3SCALE_APP_KEYS     - list of application keys corresponding to the FIRST id in the TEST_3SCALE_APP_IDS list. Also separated by commas.\n";
