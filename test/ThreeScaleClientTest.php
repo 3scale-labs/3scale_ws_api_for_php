@@ -159,7 +159,7 @@ class ThreeScaleClientTest extends UnitTestCase {
   
   function testReportEncodesTransactions() {
     $this->httpClient->expectOnce('post',
-      array('http://' . ThreeScaleClient::DEFAULT_HOST . '/transactions.xml',
+      array('http://' . ThreeScaleClient::DEFAULT_HOST .  ":" . ThreeScaleClient::DEFAULT_PORT.'/transactions.xml',
         array(
           'service_token' => '12345',
           'service_id' => '12345',
