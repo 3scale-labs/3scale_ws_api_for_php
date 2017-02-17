@@ -3,7 +3,8 @@
 if (getenv('TEST_3SCALE_PROVIDER_KEY') && 
     getenv('TEST_3SCALE_APP_IDS')      &&
     getenv('TEST_3SCALE_APP_KEYS')  &&
-    getenv('TEST_3SCALE_SERVICE_ID')) {
+    getenv('TEST_3SCALE_SERVICE_ID')  &&
+    getenv('TEST_3SCALE_SERVICE_TOKEN')){
   error_reporting(E_ALL & ~E_DEPRECATED);
   require_once(dirname(__FILE__) . '/../lib/simpletest/unit_tester.php');
   require_once(dirname(__FILE__) . '/../lib/simpletest/autorun.php');
@@ -26,39 +27,27 @@ if (getenv('TEST_3SCALE_PROVIDER_KEY') &&
       $this->serviceId = explode(',', getenv('TEST_3SCALE_SERVICE_ID')); 
       $this->serviceId = array_map('trim', $this->serviceId);
 
-      $this->client = new ThreeScaleClient($this->providerKey);
+      $this->service_token = explode(',', getenv('TEST_3SCALE_SERVICE_TOKEN')); 
+      $this->service_token = array_map('trim', $this->service_token);
+
+      $this->client = new ThreeScaleClient();
     }
 
     function testSuccessfulAuthorize() {
       foreach($this->appKeys as $appKey) {
-        $response = $this->client->authorize($this->appIds[0], $appKey, $this->serviceId[0]);
+        $response = $this->client->authorize($this->appIds[0], $appKey, new ThreeScaleClientCredentials($this->serviceId[0],$this->service_token[0]));
         $this->assertTrue($response->isSuccess());
       }
     }
 
-    function testFailedAuthorize() {
-      $response = $this->client->authorize('boo', $this->serviceId[0]);
+   function testFailedAuthorize() {
+     foreach($this->appKeys as $appKey) {
+      $response = $this->client->authorize('boo', "bar", new ThreeScaleClientCredentials($this->serviceId[0],$this->service_token[0]));
       $this->assertFalse($response->isSuccess());
-
       $this->assertEqual('application_not_found', $response->getErrorCode());
       $this->assertEqual('application with id="boo" was not found', 
                          $response->getErrorMessage());
-    }
-
-    function testSuccessfulAuthrep() {
-      foreach($this->appKeys as $appKey) {
-        $response = $this->client->authrep_with_app_id_mode($this->appIds[0], $appKey, $this->serviceId[0]);
-        $this->assertTrue($response->isSuccess());
-      }
-    }
-
-    function testFailedAuthrep() {
-      $response = $this->client->authrep_with_app_id_mode('boo', $this->serviceId[0], array('hits' => 1));
-      $this->assertFalse($response->isSuccess());
-
-      $this->assertEqual('application_not_found', $response->getErrorCode());
-      $this->assertEqual('application with id="boo" was not found', 
-                         $response->getErrorMessage());
+     }
     }
 
     function testSuccessfulReport() {
@@ -68,7 +57,7 @@ if (getenv('TEST_3SCALE_PROVIDER_KEY') &&
         array_push($transactions, array('app_id' => $appId, 'usage' => array('hits' => 1)));
       }
 
-      $response = $this->client->report($transactions, $this->serviceId[0]);
+      $response = $this->client->report($transactions, new ThreeScaleClientCredentials($this->serviceId[0],$this->service_token[0]));
       $this->assertTrue($response->isSuccess());
     }
 
