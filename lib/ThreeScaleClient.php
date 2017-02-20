@@ -17,38 +17,30 @@ require_once(dirname(__FILE__) . '/ThreeScaleAuthorizeResponse.php');
  *
  * Objects of this class are stateless and can be shared through multiple
  * transactions and by multiple clients.
- * DEFAULT_HOST = su1.3scale.et communicates with 3scale saas platform. When connecting to an on-premise instance of the  3scale platform replace it with correct host and port
+ * DEFAULT_ROOT_ENDPOINT  su1.3scale.net communicates with 3scale SAAS platform. When connecting to an on-premise instance of the  3scale platform, replace it with correct scheme, host and port
  */
 class ThreeScaleClient {
-  const DEFAULT_SCHEME = 'http';
-  const DEFAULT_HOST = 'su1.3scale.net';
-  const DEFAULT_PORT = '80';
+  const DEFAULT_ROOT_ENDPOINT = 'http://su1.3scale.net';
 
   private $providerKey = null;
   private $httpClient;
-  private $scheme;
   private $host;
-  private $port;
-
 
   /**
    * Create a ThreeScaleClient instance.
    *
    * @param $providerKey If (!Provider Key) then service token workflow is triggered.
-   * @param $host String Hostname of 3scale backend server. Usually there is no reason to use anything
-   *              else than the default value.
+   * @param $host String scheme + hostname + port of 3scale backend server or On-premise 3scale SAAS platform
    * @param $httpClient Object Object for handling HTTP requests. Default is CURL. Don't change it
    *                    unless you know what you are doing.
    */
-  public function __construct($providerKey = null, $host = self::DEFAULT_HOST, $port = self::DEFAULT_PORT, $scheme = self::DEFAULT_SCHEME, $httpClient = null) {
+  public function __construct($providerKey = null, $host = self::DEFAULT_ROOT_ENDPOINT, $httpClient = null) {
     if ($providerKey) {
       $this->providerKey = $providerKey;
     } 
 
     $this->setHttpClient($httpClient);
-    $this->scheme = $scheme;
     $this->host   = $host;
-    $this->port   = $port;
   }
 
   /**
@@ -65,22 +57,6 @@ class ThreeScaleClient {
    */
   public function getHost() {
     return $this->host;
-  }
-
-  /**
-   * Get port of the backend server.
-   * @return string
-   */
-  public function getPort() {
-    return $this->port;
-  }
-
-  /**
-   * Get scheme of the backend server. 'https' for SSL otherwise 'http'
-   * @return string
-   */
-  public function getScheme() {
-    return $this->scheme;
   }
 
   /**
@@ -118,7 +94,7 @@ class ThreeScaleClient {
    */
   
      public function authorize($appId, $appKey = null, $credentials_or_service_id, $usage = null) {
-    $url = $this->getScheme(). "://" . $this->getHost() . ":" . $this->getPort() . "/transactions/authorize.xml";
+    $url =  $this->getHost() . "/transactions/authorize.xml";
     $params = array('app_id' => $appId);
 
     if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
@@ -180,7 +156,7 @@ class ThreeScaleClient {
    * </code>
    */
   public function oauth_authorize($appId, $credentials_or_service_id, $usage = null) {
-    $url = $this->getScheme(). "://" . $this->getHost() . ":" . $this->getPort() . "/transactions/oauth_authorize.xml";
+    $url = $this->getHost() . "/transactions/oauth_authorize.xml";
     $params = array('app_id' => $appId);
 
    if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
@@ -239,7 +215,7 @@ class ThreeScaleClient {
    */
 
   public function authorize_with_user_key($userKey, $credentials_or_service_id, $usage = null) {
-    $url = $this->getScheme(). "://" . $this->getHost() . ":" . $this->getPort() . "/transactions/authorize.xml";
+    $url = $this->getHost() . "/transactions/authorize.xml";
     $params = array('user_key' => $userKey);
     
     if ($credentials_or_service_id instanceof ThreeScaleClientCredentials ) {
@@ -299,7 +275,7 @@ class ThreeScaleClient {
    */
 
    public function authrep($appId, $appKey = null, $credentials_or_service_id, $usage = null, $userId = null, $object = null, $no_body = null) {  
-    $url = $this->getScheme(). "://" . $this->getHost() . ":" . $this->getPort() . "/transactions/authrep.xml";
+    $url = $this->getHost() . "/transactions/authrep.xml";
 
     $params = array('app_id' => $appId);
 
@@ -361,7 +337,7 @@ class ThreeScaleClient {
    */
 
   public function authrep_with_user_key($userKey, $credentials_or_service_id, $usage = null, $userId = null, $object = null, $no_body = null) {  
-    $url = $this->getScheme(). "://" . $this->getHost() . ":" . $this->getPort() . "/transactions/authrep.xml";
+    $url = $this->getHost() . "/transactions/authrep.xml";
 
     $params = array('user_key' => $userKey);
 
@@ -453,7 +429,7 @@ class ThreeScaleClient {
       throw new InvalidArgumentException('no transactions to report');
     }
     
-    $url = $this->getScheme(). "://" . $this->getHost() . ":" . $this->getPort() . "/transactions.xml";
+    $url = $this->getHost() . "/transactions.xml";
 
     $params = array();
 

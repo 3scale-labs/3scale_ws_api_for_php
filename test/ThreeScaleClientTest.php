@@ -38,7 +38,7 @@ class ThreeScaleClientTest extends UnitTestCase {
   function testDefaultHost() {
     $client = new ThreeScaleClient('1234abcd');
 
-    $this->assertEqual('su1.3scale.net', $client->getHost());
+    $this->assertEqual('http://su1.3scale.net', $client->getHost());
   }
   
   function testSuccessfulAuthorize() {
@@ -159,7 +159,7 @@ class ThreeScaleClientTest extends UnitTestCase {
   
   function testReportEncodesTransactions() {
     $this->httpClient->expectOnce('post',
-      array(ThreeScaleClient::DEFAULT_SCHEME . '://' . ThreeScaleClient::DEFAULT_HOST .  ":" . ThreeScaleClient::DEFAULT_PORT.'/transactions.xml',
+      array(ThreeScaleClient::DEFAULT_ROOT_ENDPOINT . '/transactions.xml',
         array(
           'service_token' => '12345',
           'service_id' => '12345',
