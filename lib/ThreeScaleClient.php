@@ -10,6 +10,7 @@ require_once(dirname(__FILE__) . '/curl/curl.php');
 
 require_once(dirname(__FILE__) . '/ThreeScaleResponse.php');
 require_once(dirname(__FILE__) . '/ThreeScaleAuthorizeResponse.php');
+require_once(dirname(__FILE__) . '/version.php');
 
 
 /**
@@ -557,7 +558,12 @@ class ThreeScaleClient {
   public function setHttpClient($httpClient) {
     if (is_null($httpClient)) {
       $httpClient = new Curl;
+      $threeScaleVersion = new ThreeScaleVersion();
+
+      $version = $threeScaleVersion->getVersion();
+
       $httpClient->options['CURLOPT_FOLLOWLOCATION'] = false;
+      $httpClient->headers['X-3scale-User-Agent'] = 'plugin-php-v'. $version;
     }
 
     $this->httpClient = $httpClient;
