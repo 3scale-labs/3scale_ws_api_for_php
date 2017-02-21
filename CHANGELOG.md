@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Changed
+- Allow custom host and port configurable for 3scale On premise SAAS platform [PR #16](https://github.com/3scale/3scale_ws_api_for_php/pull/16)
+
 ##[2.7.0] - 2017-02-16
 ### Added
 - Added support for (Service Tokens)[https://support.3scale.net/docs/accounts/tokens]
