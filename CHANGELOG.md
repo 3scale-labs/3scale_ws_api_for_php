@@ -1,10 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 2.7.1
+
+### Added
+- Added client header ```X-3scale-User-Agent: plugin-php-v{version-number} [PR #17](https://github.com/3scale/3scale_ws_api_for_php/pull/17)
 
 ### Changed
-- Allow custom host and port configurable for 3scale On premise SAAS platform [PR #16](https://github.com/3scale/3scale_ws_api_for_php/.)  Note: For example, the signature is changed from ```$url = "http://" . $this->getHost() . "/transactions/authorize.xml"``` to ```$url = $this->getHost() . "/transactions/oauth_authorize.xml";``` for endpoints
+- Allow custom host and port configurable for 3scale On premise SAAS platform [PR #16](https://github.com/3scale/3scale_ws_api_for_php/pull/16)  Note: For example, the signature is changed from ```$url = "http://" . $this->getHost() . "/transactions/authorize.xml"``` to ```$url = $this->getHost() . "/transactions/oauth_authorize.xml";``` for endpoints
 
 ##[2.7.0] - 2017-02-16
 ### Added
