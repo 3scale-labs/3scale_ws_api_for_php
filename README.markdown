@@ -139,7 +139,7 @@ $response->getPlan()
 You can also use other patterns such as `user_key` mode during the authrep call
 
 ```php
-$response = $client->authrep_with_user_key("app id", "app key", new ThreeScaleClientCredentials("service id", "service token"), array('hits' => 1));
+$response = $client->authrep_with_user_key("user_key", new ThreeScaleClientCredentials("service id", "service token"), array('hits' => 1));
 ```
 
 ### Report
