@@ -18,7 +18,7 @@ require_once(dirname(__FILE__) . '/version.php');
  *
  * Objects of this class are stateless and can be shared through multiple
  * transactions and by multiple clients.
- * DEFAULT_ROOT_ENDPOINT  su1.3scale.net communicates with 3scale SAAS platform. When connecting to an on-premise instance of the  3scale platform, replace it with correct scheme, host and port
+ * DEFAULT_ROOT_ENDPOINT  su1.3scale.net communicates with 3scale SAAS platform
  */
 class ThreeScaleClient {
   const DEFAULT_ROOT_ENDPOINT = 'http://su1.3scale.net';

@@ -192,6 +192,16 @@ $response->getErrorCode()    // "provider_key_invalid"
 $response->getErrorMessage() // "provider key \"foo\" is invalid"
 ```
 
+## Custom backend for the 3scale Service Management API
+
+The default URI used for the 3scale Service Management API is http://su1.3scale.net:80. This value can be changed, which is useful when the plugin is used together with the on-premise version of the Red Hat 3scale API Management Platform.
+
+In order to override the URL, pass the `custom URI` while creating instance an instance of the client
+
+```php
+$client = new ThreeScaleClient(null, "http://custom-backend.example.com:8080");
+```
+
 ## Plugin integration
 
 If you are interested in integrating the plugin with:
